@@ -967,20 +967,20 @@ def get_available_item_locations_for_batched_item(
 		)
 	)
 
-	warehouse_wise_batches = frappe._dict()
+	batch_wise_warehouses = frappe._dict()
 	rejected_warehouses = get_rejected_warehouses()
 
 	for d in data:
 		if not consider_rejected_warehouses and rejected_warehouses and d.warehouse in rejected_warehouses:
 			continue
 
-		if d.warehouse not in warehouse_wise_batches:
-			warehouse_wise_batches.setdefault(d.warehouse, defaultdict(float))
+		if d.batch_nos not in batch_wise_warehouses:
+			batch_wise_warehouses.setdefault(d.batch_no, defaultdict(float))
 
-		warehouse_wise_batches[d.warehouse][d.batch_no] += d.qty
+		batch_wise_warehouses[d.batch_no][d.warehouse] += d.qty
 
-	for warehouse, batches in warehouse_wise_batches.items():
-		for batch_no, qty in batches.items():
+	for batch_no, warehouses in batch_wise_warehouses.items():
+		for warehouse, qty in warehouses.items():
 			locations.append(
 				frappe._dict(
 					{
