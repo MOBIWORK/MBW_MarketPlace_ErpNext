@@ -247,6 +247,7 @@ frappe.ui.form.on("Pick List", {
 					transaction_date: null,
 					delivery_date: null,
 				},
+				size: "extra-large",
 				date_field: "transaction_date",
 				get_query_filters: get_query_filters,
 			});
