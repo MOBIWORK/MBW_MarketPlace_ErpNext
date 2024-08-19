@@ -246,6 +246,7 @@ frappe.ui.form.on("Pick List", {
 					total_net_weight: null,
 					transaction_date: null,
 					delivery_date: null,
+					custom_da_soan_hang:null,
 				},
 				size: "extra-large",
 				date_field: "transaction_date",
