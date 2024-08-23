@@ -435,6 +435,9 @@ class SellingController(StockController):
 		if self.doctype not in ("Delivery Note", "Sales Invoice"):
 			return
 
+		allow_at_arms_length_price = frappe.get_cached_value(
+			"Stock Settings", None, "allow_internal_transfer_at_arms_length_price"
+		)
 		items = self.get("items") + (self.get("packed_items") or [])
 		for d in items:
 			if not frappe.get_cached_value("Item", d.item_code, "is_stock_item"):
@@ -481,6 +484,9 @@ class SellingController(StockController):
 							if d.incoming_rate != incoming_rate:
 								d.incoming_rate = incoming_rate
 						else:
+							if allow_at_arms_length_price:
+								continue
+
 							rate = flt(
 								flt(d.incoming_rate, d.precision("incoming_rate")) * d.conversion_factor,
 								d.precision("rate"),
@@ -691,7 +697,7 @@ class SellingController(StockController):
 			duplicate_items_msg = _("Item {0} entered multiple times.").format(frappe.bold(d.item_code))
 			duplicate_items_msg += "<br><br>"
 			duplicate_items_msg += _("Please enable {} in {} to allow same item in multiple rows").format(
-				frappe.bold("Allow Item to Be Added Multiple Times in a Transaction"),
+				frappe.bold(_("Allow Item to Be Added Multiple Times in a Transaction")),
 				get_link_to_form("Selling Settings", "Selling Settings"),
 			)
 			if frappe.db.get_value("Item", d.item_code, "is_stock_item") == 1:
