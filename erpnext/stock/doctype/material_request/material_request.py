@@ -796,6 +796,7 @@ def raise_work_orders(material_request):
 
 @frappe.whitelist()
 def create_pick_list(source_name, target_doc=None):
+	mr = frappe.get_doc("Material Request", source_name)
 	doc = get_mapped_doc(
 		"Material Request",
 		source_name,
@@ -812,7 +813,9 @@ def create_pick_list(source_name, target_doc=None):
 		},
 		target_doc,
 	)
-
+	# Code thêm
+	doc.parent_warehouse = mr.set_from_warehouse
+	
 	doc.set_item_locations()
 
 	return doc
