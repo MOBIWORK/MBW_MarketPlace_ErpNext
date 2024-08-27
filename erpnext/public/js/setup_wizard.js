@@ -38,6 +38,31 @@ erpnext.setup.slides_settings = [
 				options: "",
 				fieldtype: "Select",
 			},
+			// thêm tùy chọn tài khoản kế toán
+			{
+				fieldname: "accouting_type",
+				label: __("Accouting Type"),
+				options: [
+					{ "value": "tt133", "label": __("Hệ thống tài khoản TT 133") },
+					{ "value": "tt200", "label": __("Hệ thống tài khoản TT 200") }
+				],
+				fieldtype: "Select",
+				default: "tt133",
+				reqd: 1,
+			},
+			{
+				fieldname: "inven_valua_method",
+				label: __("Inventory Valuation Method"),
+				options: [
+					{ "value": "FIFO", "label": __("Nhập trước xuất trước") },
+					{ "value": "LIFO", "label": __("Nhập sau xuất trước") },
+					{ "value": "Moving Average", "label": __("Bình quân gia quyền") },
+				],
+				fieldtype: "Select",
+				default: "FIFO",
+				reqd: 1,
+			},
+			// kết thúc thiết lập tùy chọn kế toán
 			{ fieldname: "view_coa", label: __("View Chart of Accounts"), fieldtype: "Button" },
 			{ fieldname: "fy_start_date", label: __("Financial Year Begins On"), fieldtype: "Date", reqd: 1 },
 			// end date should be hidden (auto calculated)

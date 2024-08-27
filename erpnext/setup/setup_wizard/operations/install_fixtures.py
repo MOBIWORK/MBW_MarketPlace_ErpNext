@@ -456,6 +456,152 @@ def install_defaults(args=None):  # nosemgrep
 	args.update({"set_default": 1})
 	create_bank_account(args)
 
+def read_excel(file):
+	setup_wizard_path = frappe.get_module_path("setup", 'setup_wizard',"operations")
+	file_path = frappe.get_site_path(setup_wizard_path,file)
+	from openpyxl import load_workbook
+	wb = load_workbook(filename=file_path)
+	ws = wb.active  # Chọn sheet đầu tiên (active sheet)
+
+	# Bước 3: Duyệt qua từng hàng trong sheet
+	data = []
+	for row in ws.iter_rows(values_only=True):
+		# Bước 4: Lưu trữ dữ liệu của từng hàng
+		data.append(list(row))
+	final_data = [] 
+	del data[0]
+
+	for row in data:
+		if not row[1]:
+			row[1] = row[0]
+			row[3] = row[2]
+		final_data.append(row)
+
+	return final_data
+
+def install_accounting(args=None):
+	#đọc excel
+	accouting_type = args.accouting_type
+	company =  args.company_name
+	company = frappe.get_doc("Company", company)
+	data = read_excel(f"{accouting_type}.xlsx")
+	print("data================",data)
+	from erpnext.accounts.doctype.chart_of_accounts_importer.chart_of_accounts_importer import build_forest,create_charts
+	#xử lý dữ liệu excel vào doctype accouting
+	frappe.local.flags.ignore_root_company_validation = True
+	forest = build_forest(data)
+	create_charts(company, custom_chart=forest, from_coa_importer=True)
+
+	# trigger on_update for company to reset default accounts
+	from erpnext.setup.doctype.company.company import install_country_fixtures
+	update_accounting =  {
+		"default_bank_account" : frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 1121}
+				),
+		"default_cash_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 1111}
+				),
+		"default_receivable_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 131}
+				),
+		"default_payable_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 331}
+				),
+		"default_expense_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 632}
+				),
+		"default_income_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 5111}
+				),
+		"round_off_account": "",
+		"default_deferred_revenue_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 3387}
+				),
+		"round_off_cost_center": "",
+		"default_deferred_expense_account": "",
+		"write_off_account": "",
+		"default_discount_account": "",
+		"exchange_gain_loss_account": "",
+		"payment_terms": "",
+		"unrealized_exchange_gain_loss_account": "",
+		"cost_center": "",
+		"unrealized_profit_loss_account": "",
+		"default_finance_book": "",
+		"default_advance_received_account": "",
+		"default_advance_paid_account": "",
+		"accumulated_depreciation_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 2141}
+				),
+		"depreciation_expense_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 6424}
+				),
+		"series_for_depreciation_entry": "",
+		"expenses_included_in_asset_valuation": "",
+		"disposal_account": "",
+		"depreciation_cost_center": "",
+		"capital_work_in_progress_account": "",
+		"asset_received_but_not_billed": "",
+		"default_expense_claim_payable_account": "",
+		"default_employee_advance_account":frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 141}
+				),
+		"default_payroll_payable_account": "",
+		"default_inventory_account": "",
+		"stock_adjustment_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 811}
+				),
+		"stock_received_but_not_billed": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 335}
+				),
+		"default_provisional_account": "",
+		"expenses_included_in_valuation": ""
+	}
+	# company = frappe.get_doc("Company", company)
+	if accouting_type == "tt133":
+		update_accounting.update({
+			"default_discount_account":frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 5111}
+				),
+			"default_payroll_payable_account":frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 334}
+				) ,
+			"default_inventory_account":frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 155}
+				)
+		})
+		company.update(
+			update_accounting
+		)
+	elif accouting_type == "tt200" : 
+		update_accounting.update({
+			"default_deferred_expense_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 142}
+				),
+			"default_discount_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 5112}
+				),
+			"default_payroll_payable_account":frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 3341}
+				),
+				"default_inventory_account":frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 1551}
+				)})
+		company.update(
+			update_accounting
+		)
+
+	company.save()
+	install_country_fixtures(company.name, company.country)
+	company.create_default_tax_template()
+	# xử lý cấu hình accouting company
+
+
+
+	# thiết lập “Default valuation method” trong stock setting
+	inven_valua_method = args.inven_valua_method
+	stock_setting = frappe.get_single("Stock Settings")
+	stock_setting.set("valuation_method",inven_valua_method)
+	stock_setting.save()
 
 def set_global_defaults(args):
 	global_defaults = frappe.get_doc("Global Defaults", "Global Defaults")

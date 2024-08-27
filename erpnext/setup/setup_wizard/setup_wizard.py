@@ -30,6 +30,13 @@ def get_setup_stages(args=None):
 				"fail_msg": _("Failed to setup company"),
 				"tasks": [{"fn": setup_company, "args": args, "fail_msg": _("Failed to setup company")}],
 			},
+			# setup tài khoản kế toán
+			{
+				"status": _("Accounting setup"),
+				"fail_msg": _("Failed to setup accouting type"),
+				"tasks": [{"fn": setup_accouting, "args": args, "fail_msg": _("Failed to setup accouting type")}],
+			},
+			# end setup tài khoản kế toán
 			{
 				"status": _("Setting defaults"),
 				"fail_msg": "Failed to set defaults",
@@ -42,6 +49,7 @@ def get_setup_stages(args=None):
 				"fail_msg": _("Failed to login"),
 				"tasks": [{"fn": fin, "args": args, "fail_msg": _("Failed to login")}],
 			},
+			
 		]
 
 	return stages
@@ -54,6 +62,10 @@ def stage_fixtures(args):
 def setup_company(args):
 	fixtures.install_company(args)
 
+
+# setup tài khoản kế toán-import dữ liệu ở đây
+def setup_accouting(args):
+	fixtures.install_accounting(args)
 
 def setup_defaults(args):
 	fixtures.install_defaults(frappe._dict(args))

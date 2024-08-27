@@ -83,7 +83,7 @@ def import_coa(file_name, company):
 		data = generate_data_from_csv(file_doc)
 	else:
 		data = generate_data_from_excel(file_doc, extension)
-
+	print("=================data========",data)
 	frappe.local.flags.ignore_root_company_validation = True
 	forest = build_forest(data)
 	create_charts(company, custom_chart=forest, from_coa_importer=True)
