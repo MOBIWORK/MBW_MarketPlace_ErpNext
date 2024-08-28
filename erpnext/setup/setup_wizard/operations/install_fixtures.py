@@ -41,30 +41,6 @@ def install(country=None):
 			"parent_item_group": _("All Item Groups"),
 			"show_in_website": 1,
 		},
-		# {
-		# 	"doctype": "Item Group",
-		# 	"item_group_name": _("Raw Material"),
-		# 	"is_group": 0,
-		# 	"parent_item_group": _("All Item Groups"),
-		# },
-		# {
-		# 	"doctype": "Item Group",
-		# 	"item_group_name": _("Services"),
-		# 	"is_group": 0,
-		# 	"parent_item_group": _("All Item Groups"),
-		# },
-		# {
-		# 	"doctype": "Item Group",
-		# 	"item_group_name": _("Sub Assemblies"),
-		# 	"is_group": 0,
-		# 	"parent_item_group": _("All Item Groups"),
-		# },
-		# {
-		# 	"doctype": "Item Group",
-		# 	"item_group_name": _("Consumable"),
-		# 	"is_group": 0,
-		# 	"parent_item_group": _("All Item Groups"),
-		# },
 		# Stock Entry Type
 		{"doctype": "Stock Entry Type", "name": "Material Issue", "purpose": "Material Issue"},
 		{"doctype": "Stock Entry Type", "name": "Material Receipt", "purpose": "Material Receipt"},
@@ -90,115 +66,7 @@ def install(country=None):
 			"name": "Material Consumption for Manufacture",
 			"purpose": "Material Consumption for Manufacture",
 		},
-		# territory: with two default territories, one for home country and one named Rest of the World
-		# {
-		# 	"doctype": "Territory",
-		# 	"territory_name": _("All Territories"),
-		# 	"is_group": 1,
-		# 	"name": _("All Territories"),
-		# 	"parent_territory": "",
-		# },
-		# {
-		# 	"doctype": "Territory",
-		# 	"territory_name": country.replace("'", ""),
-		# 	"is_group": 0,
-		# 	"parent_territory": _("All Territories"),
-		# },
-		# {
-		# 	"doctype": "Territory",
-		# 	"territory_name": _("Rest Of The World"),
-		# 	"is_group": 0,
-		# 	"parent_territory": _("All Territories"),
-		# },
-		# customer group
-		# {
-		# 	"doctype": "Customer Group",
-		# 	"customer_group_name": _("All Customer Groups"),
-		# 	"is_group": 1,
-		# 	"name": _("All Customer Groups"),
-		# 	"parent_customer_group": "",
-		# },
-		# {
-		# 	"doctype": "Customer Group",
-		# 	"customer_group_name": _("Individual"),
-		# 	"is_group": 0,
-		# 	"parent_customer_group": _("All Customer Groups"),
-		# },
-		# {
-		# 	"doctype": "Customer Group",
-		# 	"customer_group_name": _("Commercial"),
-		# 	"is_group": 0,
-		# 	"parent_customer_group": _("All Customer Groups"),
-		# },
-		# {
-		# 	"doctype": "Customer Group",
-		# 	"customer_group_name": _("Non Profit"),
-		# 	"is_group": 0,
-		# 	"parent_customer_group": _("All Customer Groups"),
-		# },
-		# {
-		# 	"doctype": "Customer Group",
-		# 	"customer_group_name": _("Government"),
-		# 	"is_group": 0,
-		# 	"parent_customer_group": _("All Customer Groups"),
-		# },
-		# supplier group
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("All Supplier Groups"),
-		# 	"is_group": 1,
-		# 	"name": _("All Supplier Groups"),
-		# 	"parent_supplier_group": "",
-		# },
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("Services"),
-		# 	"is_group": 0,
-		# 	"parent_supplier_group": _("All Supplier Groups"),
-		# },
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("Local"),
-		# 	"is_group": 0,
-		# 	"parent_supplier_group": _("All Supplier Groups"),
-		# },
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("Raw Material"),
-		# 	"is_group": 0,
-		# 	"parent_supplier_group": _("All Supplier Groups"),
-		# },
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("Electrical"),
-		# 	"is_group": 0,
-		# 	"parent_supplier_group": _("All Supplier Groups"),
-		# },
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("Hardware"),
-		# 	"is_group": 0,
-		# 	"parent_supplier_group": _("All Supplier Groups"),
-		# },
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("Pharmaceutical"),
-		# 	"is_group": 0,
-		# 	"parent_supplier_group": _("All Supplier Groups"),
-		# },
-		# {
-		# 	"doctype": "Supplier Group",
-		# 	"supplier_group_name": _("Distributor"),
-		# 	"is_group": 0,
-		# 	"parent_supplier_group": _("All Supplier Groups"),
-		# },
-		# Sales Person
-		# {
-		# 	"doctype": "Sales Person",
-		# 	"sales_person_name": _("Sales Team"),
-		# 	"is_group": 1,
-		# 	"parent_sales_person": "",
-		# },
+		
 		# Mode of Payment
 		{
 			"doctype": "Mode of Payment",
@@ -209,42 +77,10 @@ def install(country=None):
 		{"doctype": "Mode of Payment", "mode_of_payment": _("Credit Card"), "type": "Bank"},
 		{"doctype": "Mode of Payment", "mode_of_payment": _("Wire Transfer"), "type": "Bank"},
 		{"doctype": "Mode of Payment", "mode_of_payment": _("Bank Draft"), "type": "Bank"},
-		# Activity Type
-		# {"doctype": "Activity Type", "activity_type": _("Planning")},
-		# {"doctype": "Activity Type", "activity_type": _("Research")},
-		# {"doctype": "Activity Type", "activity_type": _("Proposal Writing")},
-		# {"doctype": "Activity Type", "activity_type": _("Execution")},
-		# {"doctype": "Activity Type", "activity_type": _("Communication")},
-		# Item Attribute
-		# {
-		# 	"doctype": "Item Attribute",
-		# 	"attribute_name": _("Size"),
-		# 	"item_attribute_values": [
-		# 		{"attribute_value": _("Extra Small"), "abbr": "XS"},
-		# 		{"attribute_value": _("Small"), "abbr": "S"},
-		# 		{"attribute_value": _("Medium"), "abbr": "M"},
-		# 		{"attribute_value": _("Large"), "abbr": "L"},
-		# 		{"attribute_value": _("Extra Large"), "abbr": "XL"},
-		# 	],
-		# },
-		# {
-		# 	"doctype": "Item Attribute",
-		# 	"attribute_name": _("Colour"),
-		# 	"item_attribute_values": [
-		# 		{"attribute_value": _("Red"), "abbr": "RED"},
-		# 		{"attribute_value": _("Green"), "abbr": "GRE"},
-		# 		{"attribute_value": _("Blue"), "abbr": "BLU"},
-		# 		{"attribute_value": _("Black"), "abbr": "BLA"},
-		# 		{"attribute_value": _("White"), "abbr": "WHI"},
-		# 	],
-		# },
 		# Issue Priority
 		{"doctype": "Issue Priority", "name": _("Low")},
 		{"doctype": "Issue Priority", "name": _("Medium")},
 		{"doctype": "Issue Priority", "name": _("High")},
-		# Email Account
-		# {"doctype": "Email Account", "email_id": "sales@example.com", "append_to": "Opportunity"},
-		# {"doctype": "Email Account", "email_id": "support@example.com", "append_to": "Issue"},
 		# Party Type
 		{"doctype": "Party Type", "party_type": "Customer", "account_type": "Receivable"},
 		{"doctype": "Party Type", "party_type": "Supplier", "account_type": "Payable"},
@@ -430,28 +266,6 @@ def install_company(args):
 
 
 def install_defaults(args=None):  # nosemgrep
-	# records = [
-	# 	# Price Lists
-	# 	{
-	# 		"doctype": "Price List",
-	# 		"price_list_name": _("Standard Buying"),
-	# 		"enabled": 1,
-	# 		"buying": 1,
-	# 		"selling": 0,
-	# 		"currency": args.currency,
-	# 	},
-	# 	{
-	# 		"doctype": "Price List",
-	# 		"price_list_name": _("Standard Selling"),
-	# 		"enabled": 1,
-	# 		"buying": 0,
-	# 		"selling": 1,
-	# 		"currency": args.currency,
-	# 	},
-	# ]
-
-	# make_records(records)
-
 	# enable default currency
 	frappe.db.set_value("Currency", args.get("currency"), "enabled", 1)
 	frappe.db.set_single_value("Stock Settings", "email_footer_address", args.get("company_name"))
@@ -460,7 +274,6 @@ def install_defaults(args=None):  # nosemgrep
 	update_stock_settings()
 
 	args.update({"set_default": 1})
-	# create_bank_account(args)
 
 def read_excel(file):
 	setup_wizard_path = frappe.get_module_path("setup", 'setup_wizard',"operations")
@@ -486,7 +299,6 @@ def read_excel(file):
 	return final_data
 
 def install_accounting(args=None):
-	print("args ================",args)
 	# xóa dữ liệu mặc định accouting
 	frappe.db.delete("Account")
 	#đọc excel
@@ -525,44 +337,28 @@ def install_accounting(args=None):
 		"default_deferred_revenue_account": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 3387}
 				),
-		"round_off_cost_center": "",
-		"default_deferred_expense_account": "",
-		"write_off_account": "",
-		"default_discount_account": "",
-		"exchange_gain_loss_account": "",
-		"payment_terms": "",
-		"unrealized_exchange_gain_loss_account": "",
-		"cost_center": "",
-		"unrealized_profit_loss_account": "",
-		"default_finance_book": "",
-		"default_advance_received_account": "",
-		"default_advance_paid_account": "",
 		"accumulated_depreciation_account": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 2141}
 				),
 		"depreciation_expense_account": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 6424}
 				),
-		"series_for_depreciation_entry": "",
-		"expenses_included_in_asset_valuation": "",
-		"disposal_account": "",
-		"depreciation_cost_center": "",
-		"capital_work_in_progress_account": "",
-		"asset_received_but_not_billed": "",
-		"default_expense_claim_payable_account": "",
 		"default_employee_advance_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 141}
 				),
-		"default_payroll_payable_account": "",
-		"default_inventory_account": "",
 		"stock_adjustment_account": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 811}
 				),
 		"stock_received_but_not_billed": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 335}
 				),
-		"default_provisional_account": "",
-		"expenses_included_in_valuation": ""
+		"write_off_account": None,
+		"exchange_gain_loss_account": None,
+		"expenses_included_in_asset_valuation": None,
+		"capital_work_in_progress_account": None,
+		"asset_received_but_not_billed": None,
+		"expenses_included_in_valuation": None,
+		"disposal_account": None,
 	}
 	# xử lý cấu hình accouting company
 	if accouting_type == "tt133":
@@ -594,7 +390,8 @@ def install_accounting(args=None):
 				"default_inventory_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 1551}
 				)})
-
+	print("update_accounting====================",update_accounting)
+	company.update(update_accounting)
 	company.save()
 	install_country_fixtures(company.name, company.country)
 	company.create_default_tax_template()
@@ -636,7 +433,7 @@ def install_accounting(args=None):
 	frappe.db.delete("Warehouse")
 	frappe.db.delete("Email Account")
 	frappe.db.commit()
-
+	# raise ValueError("vấn đề lúc xóa")
 
 
 def set_global_defaults(args):
