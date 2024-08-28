@@ -460,7 +460,7 @@ def install_defaults(args=None):  # nosemgrep
 	update_stock_settings()
 
 	args.update({"set_default": 1})
-	create_bank_account(args)
+	# create_bank_account(args)
 
 def read_excel(file):
 	setup_wizard_path = frappe.get_module_path("setup", 'setup_wizard',"operations")
@@ -582,21 +582,18 @@ def install_accounting(args=None):
 		)
 	elif accouting_type == "tt200" : 
 		update_accounting.update({
-			"default_deferred_expense_account": frappe.db.get_value(
+				"default_deferred_expense_account": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 142}
 				),
-			"default_discount_account": frappe.db.get_value(
-					"Account", {"company": company.name, "account_number": 5112}
+				"default_discount_account": frappe.db.get_value(
+					"Account", {"company": company.name, "account_number": 5211}
 				),
-			"default_payroll_payable_account":frappe.db.get_value(
+				"default_payroll_payable_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 3341}
 				),
 				"default_inventory_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 1551}
 				)})
-		company.update(
-			update_accounting
-		)
 
 	company.save()
 	install_country_fixtures(company.name, company.country)
