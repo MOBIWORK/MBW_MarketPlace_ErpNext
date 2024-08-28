@@ -611,28 +611,31 @@ def install_accounting(args=None):
 	stock_setting.save()
 
 	# xử lý xóa dữ liệu không cần thiết
-	# frappe.db.delete("Item Group")
-	frappe.db.delete("Purchase Taxes and Charges Template")
 	# frappe.db.delete("Supplier Group")
-	frappe.db.delete("Supplier Scorecard Variable")
-	frappe.db.delete("Supplier Scorecard Standing")
 	# frappe.db.delete("Sales Person")
-	frappe.db.delete("Sales Taxes and Charges Template")
 	# frappe.db.delete("Lead Source")
 	# frappe.db.delete("Customer Group")
 	# frappe.db.delete("Territory")
-	frappe.db.delete("Department")
 	# frappe.db.delete("Designation")
-	frappe.db.delete("Energy Point Rule")
 	# frappe.db.delete("Activity Type")
 	# frappe.db.delete("Expense Claim Type")
 	# frappe.db.delete("Vehicle Service Item")
-	frappe.db.delete("Leave Type")
-	frappe.db.delete("Role Profile")
-	frappe.db.delete("Warehouse")
 	# frappe.db.delete("UOM")
 	# frappe.db.delete("Item Attribute")
 	# frappe.db.delete("UOM Conversion Factor")
+	if frappe.db.table_exists("Item Group"):
+		frappe.db.delete("Item Group")
+	frappe.db.delete("Purchase Taxes and Charges Template")
+	frappe.db.delete("Supplier Scorecard Variable")
+	frappe.db.delete("Supplier Scorecard Standing")
+	frappe.db.delete("Sales Taxes and Charges Template")
+	frappe.db.delete("Department")
+	frappe.db.delete("Energy Point Rule")
+	if frappe.db.table_exists("Leave Type"):
+		frappe.db.delete("Leave Type")
+	if frappe.db.table_exists("Role Profile"):
+		frappe.db.delete("Role Profile")
+	frappe.db.delete("Warehouse")
 	frappe.db.delete("Email Account")
 	frappe.db.commit()
 
@@ -657,7 +660,7 @@ def update_stock_settings():
 	stock_settings.item_naming_by = "Item Code"
 	stock_settings.valuation_method = "FIFO"
 	# stock_settings.default_warehouse = frappe.db.get_value("Warehouse", {"warehouse_name": _("Stores")})
-	stock_settings.stock_uom = _("Nos")
+	# stock_settings.stock_uom = _("Nos")
 	stock_settings.auto_indent = 1
 	stock_settings.auto_insert_price_list_rate_if_missing = 1
 	stock_settings.set_qty_in_transactions_based_on_serial_no_input = 1
