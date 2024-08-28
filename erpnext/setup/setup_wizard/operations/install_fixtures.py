@@ -41,30 +41,30 @@ def install(country=None):
 			"parent_item_group": _("All Item Groups"),
 			"show_in_website": 1,
 		},
-		{
-			"doctype": "Item Group",
-			"item_group_name": _("Raw Material"),
-			"is_group": 0,
-			"parent_item_group": _("All Item Groups"),
-		},
-		{
-			"doctype": "Item Group",
-			"item_group_name": _("Services"),
-			"is_group": 0,
-			"parent_item_group": _("All Item Groups"),
-		},
-		{
-			"doctype": "Item Group",
-			"item_group_name": _("Sub Assemblies"),
-			"is_group": 0,
-			"parent_item_group": _("All Item Groups"),
-		},
-		{
-			"doctype": "Item Group",
-			"item_group_name": _("Consumable"),
-			"is_group": 0,
-			"parent_item_group": _("All Item Groups"),
-		},
+		# {
+		# 	"doctype": "Item Group",
+		# 	"item_group_name": _("Raw Material"),
+		# 	"is_group": 0,
+		# 	"parent_item_group": _("All Item Groups"),
+		# },
+		# {
+		# 	"doctype": "Item Group",
+		# 	"item_group_name": _("Services"),
+		# 	"is_group": 0,
+		# 	"parent_item_group": _("All Item Groups"),
+		# },
+		# {
+		# 	"doctype": "Item Group",
+		# 	"item_group_name": _("Sub Assemblies"),
+		# 	"is_group": 0,
+		# 	"parent_item_group": _("All Item Groups"),
+		# },
+		# {
+		# 	"doctype": "Item Group",
+		# 	"item_group_name": _("Consumable"),
+		# 	"is_group": 0,
+		# 	"parent_item_group": _("All Item Groups"),
+		# },
 		# Stock Entry Type
 		{"doctype": "Stock Entry Type", "name": "Material Issue", "purpose": "Material Issue"},
 		{"doctype": "Stock Entry Type", "name": "Material Receipt", "purpose": "Material Receipt"},
@@ -91,114 +91,114 @@ def install(country=None):
 			"purpose": "Material Consumption for Manufacture",
 		},
 		# territory: with two default territories, one for home country and one named Rest of the World
-		{
-			"doctype": "Territory",
-			"territory_name": _("All Territories"),
-			"is_group": 1,
-			"name": _("All Territories"),
-			"parent_territory": "",
-		},
-		{
-			"doctype": "Territory",
-			"territory_name": country.replace("'", ""),
-			"is_group": 0,
-			"parent_territory": _("All Territories"),
-		},
-		{
-			"doctype": "Territory",
-			"territory_name": _("Rest Of The World"),
-			"is_group": 0,
-			"parent_territory": _("All Territories"),
-		},
+		# {
+		# 	"doctype": "Territory",
+		# 	"territory_name": _("All Territories"),
+		# 	"is_group": 1,
+		# 	"name": _("All Territories"),
+		# 	"parent_territory": "",
+		# },
+		# {
+		# 	"doctype": "Territory",
+		# 	"territory_name": country.replace("'", ""),
+		# 	"is_group": 0,
+		# 	"parent_territory": _("All Territories"),
+		# },
+		# {
+		# 	"doctype": "Territory",
+		# 	"territory_name": _("Rest Of The World"),
+		# 	"is_group": 0,
+		# 	"parent_territory": _("All Territories"),
+		# },
 		# customer group
-		{
-			"doctype": "Customer Group",
-			"customer_group_name": _("All Customer Groups"),
-			"is_group": 1,
-			"name": _("All Customer Groups"),
-			"parent_customer_group": "",
-		},
-		{
-			"doctype": "Customer Group",
-			"customer_group_name": _("Individual"),
-			"is_group": 0,
-			"parent_customer_group": _("All Customer Groups"),
-		},
-		{
-			"doctype": "Customer Group",
-			"customer_group_name": _("Commercial"),
-			"is_group": 0,
-			"parent_customer_group": _("All Customer Groups"),
-		},
-		{
-			"doctype": "Customer Group",
-			"customer_group_name": _("Non Profit"),
-			"is_group": 0,
-			"parent_customer_group": _("All Customer Groups"),
-		},
-		{
-			"doctype": "Customer Group",
-			"customer_group_name": _("Government"),
-			"is_group": 0,
-			"parent_customer_group": _("All Customer Groups"),
-		},
+		# {
+		# 	"doctype": "Customer Group",
+		# 	"customer_group_name": _("All Customer Groups"),
+		# 	"is_group": 1,
+		# 	"name": _("All Customer Groups"),
+		# 	"parent_customer_group": "",
+		# },
+		# {
+		# 	"doctype": "Customer Group",
+		# 	"customer_group_name": _("Individual"),
+		# 	"is_group": 0,
+		# 	"parent_customer_group": _("All Customer Groups"),
+		# },
+		# {
+		# 	"doctype": "Customer Group",
+		# 	"customer_group_name": _("Commercial"),
+		# 	"is_group": 0,
+		# 	"parent_customer_group": _("All Customer Groups"),
+		# },
+		# {
+		# 	"doctype": "Customer Group",
+		# 	"customer_group_name": _("Non Profit"),
+		# 	"is_group": 0,
+		# 	"parent_customer_group": _("All Customer Groups"),
+		# },
+		# {
+		# 	"doctype": "Customer Group",
+		# 	"customer_group_name": _("Government"),
+		# 	"is_group": 0,
+		# 	"parent_customer_group": _("All Customer Groups"),
+		# },
 		# supplier group
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("All Supplier Groups"),
-			"is_group": 1,
-			"name": _("All Supplier Groups"),
-			"parent_supplier_group": "",
-		},
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("Services"),
-			"is_group": 0,
-			"parent_supplier_group": _("All Supplier Groups"),
-		},
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("Local"),
-			"is_group": 0,
-			"parent_supplier_group": _("All Supplier Groups"),
-		},
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("Raw Material"),
-			"is_group": 0,
-			"parent_supplier_group": _("All Supplier Groups"),
-		},
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("Electrical"),
-			"is_group": 0,
-			"parent_supplier_group": _("All Supplier Groups"),
-		},
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("Hardware"),
-			"is_group": 0,
-			"parent_supplier_group": _("All Supplier Groups"),
-		},
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("Pharmaceutical"),
-			"is_group": 0,
-			"parent_supplier_group": _("All Supplier Groups"),
-		},
-		{
-			"doctype": "Supplier Group",
-			"supplier_group_name": _("Distributor"),
-			"is_group": 0,
-			"parent_supplier_group": _("All Supplier Groups"),
-		},
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("All Supplier Groups"),
+		# 	"is_group": 1,
+		# 	"name": _("All Supplier Groups"),
+		# 	"parent_supplier_group": "",
+		# },
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("Services"),
+		# 	"is_group": 0,
+		# 	"parent_supplier_group": _("All Supplier Groups"),
+		# },
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("Local"),
+		# 	"is_group": 0,
+		# 	"parent_supplier_group": _("All Supplier Groups"),
+		# },
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("Raw Material"),
+		# 	"is_group": 0,
+		# 	"parent_supplier_group": _("All Supplier Groups"),
+		# },
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("Electrical"),
+		# 	"is_group": 0,
+		# 	"parent_supplier_group": _("All Supplier Groups"),
+		# },
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("Hardware"),
+		# 	"is_group": 0,
+		# 	"parent_supplier_group": _("All Supplier Groups"),
+		# },
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("Pharmaceutical"),
+		# 	"is_group": 0,
+		# 	"parent_supplier_group": _("All Supplier Groups"),
+		# },
+		# {
+		# 	"doctype": "Supplier Group",
+		# 	"supplier_group_name": _("Distributor"),
+		# 	"is_group": 0,
+		# 	"parent_supplier_group": _("All Supplier Groups"),
+		# },
 		# Sales Person
-		{
-			"doctype": "Sales Person",
-			"sales_person_name": _("Sales Team"),
-			"is_group": 1,
-			"parent_sales_person": "",
-		},
+		# {
+		# 	"doctype": "Sales Person",
+		# 	"sales_person_name": _("Sales Team"),
+		# 	"is_group": 1,
+		# 	"parent_sales_person": "",
+		# },
 		# Mode of Payment
 		{
 			"doctype": "Mode of Payment",
@@ -210,49 +210,55 @@ def install(country=None):
 		{"doctype": "Mode of Payment", "mode_of_payment": _("Wire Transfer"), "type": "Bank"},
 		{"doctype": "Mode of Payment", "mode_of_payment": _("Bank Draft"), "type": "Bank"},
 		# Activity Type
-		{"doctype": "Activity Type", "activity_type": _("Planning")},
-		{"doctype": "Activity Type", "activity_type": _("Research")},
-		{"doctype": "Activity Type", "activity_type": _("Proposal Writing")},
-		{"doctype": "Activity Type", "activity_type": _("Execution")},
-		{"doctype": "Activity Type", "activity_type": _("Communication")},
-		{
-			"doctype": "Item Attribute",
-			"attribute_name": _("Size"),
-			"item_attribute_values": [
-				{"attribute_value": _("Extra Small"), "abbr": "XS"},
-				{"attribute_value": _("Small"), "abbr": "S"},
-				{"attribute_value": _("Medium"), "abbr": "M"},
-				{"attribute_value": _("Large"), "abbr": "L"},
-				{"attribute_value": _("Extra Large"), "abbr": "XL"},
-			],
-		},
-		{
-			"doctype": "Item Attribute",
-			"attribute_name": _("Colour"),
-			"item_attribute_values": [
-				{"attribute_value": _("Red"), "abbr": "RED"},
-				{"attribute_value": _("Green"), "abbr": "GRE"},
-				{"attribute_value": _("Blue"), "abbr": "BLU"},
-				{"attribute_value": _("Black"), "abbr": "BLA"},
-				{"attribute_value": _("White"), "abbr": "WHI"},
-			],
-		},
+		# {"doctype": "Activity Type", "activity_type": _("Planning")},
+		# {"doctype": "Activity Type", "activity_type": _("Research")},
+		# {"doctype": "Activity Type", "activity_type": _("Proposal Writing")},
+		# {"doctype": "Activity Type", "activity_type": _("Execution")},
+		# {"doctype": "Activity Type", "activity_type": _("Communication")},
+		# Item Attribute
+		# {
+		# 	"doctype": "Item Attribute",
+		# 	"attribute_name": _("Size"),
+		# 	"item_attribute_values": [
+		# 		{"attribute_value": _("Extra Small"), "abbr": "XS"},
+		# 		{"attribute_value": _("Small"), "abbr": "S"},
+		# 		{"attribute_value": _("Medium"), "abbr": "M"},
+		# 		{"attribute_value": _("Large"), "abbr": "L"},
+		# 		{"attribute_value": _("Extra Large"), "abbr": "XL"},
+		# 	],
+		# },
+		# {
+		# 	"doctype": "Item Attribute",
+		# 	"attribute_name": _("Colour"),
+		# 	"item_attribute_values": [
+		# 		{"attribute_value": _("Red"), "abbr": "RED"},
+		# 		{"attribute_value": _("Green"), "abbr": "GRE"},
+		# 		{"attribute_value": _("Blue"), "abbr": "BLU"},
+		# 		{"attribute_value": _("Black"), "abbr": "BLA"},
+		# 		{"attribute_value": _("White"), "abbr": "WHI"},
+		# 	],
+		# },
 		# Issue Priority
 		{"doctype": "Issue Priority", "name": _("Low")},
 		{"doctype": "Issue Priority", "name": _("Medium")},
 		{"doctype": "Issue Priority", "name": _("High")},
-		{"doctype": "Email Account", "email_id": "sales@example.com", "append_to": "Opportunity"},
-		{"doctype": "Email Account", "email_id": "support@example.com", "append_to": "Issue"},
+		# Email Account
+		# {"doctype": "Email Account", "email_id": "sales@example.com", "append_to": "Opportunity"},
+		# {"doctype": "Email Account", "email_id": "support@example.com", "append_to": "Issue"},
+		# Party Type
 		{"doctype": "Party Type", "party_type": "Customer", "account_type": "Receivable"},
 		{"doctype": "Party Type", "party_type": "Supplier", "account_type": "Payable"},
 		{"doctype": "Party Type", "party_type": "Employee", "account_type": "Payable"},
 		{"doctype": "Party Type", "party_type": "Shareholder", "account_type": "Payable"},
+		# Opportunity Type
 		{"doctype": "Opportunity Type", "name": _("Sales")},
 		{"doctype": "Opportunity Type", "name": _("Support")},
 		{"doctype": "Opportunity Type", "name": _("Maintenance")},
+		# Project Type
 		{"doctype": "Project Type", "project_type": "Internal"},
 		{"doctype": "Project Type", "project_type": "External"},
 		{"doctype": "Project Type", "project_type": "Other"},
+		# Print Heading
 		{"doctype": "Print Heading", "print_heading": _("Credit Note")},
 		{"doctype": "Print Heading", "print_heading": _("Debit Note")},
 		# Share Management
@@ -267,10 +273,10 @@ def install(country=None):
 	]
 
 	for doctype, title_field, filename in (
-		("Designation", "designation_name", "designation.txt"),
+		# ("Designation", "designation_name", "designation.txt"),
 		("Sales Stage", "stage_name", "sales_stage.txt"),
 		("Industry Type", "industry", "industry_type.txt"),
-		("Lead Source", "source_name", "lead_source.txt"),
+		# ("Lead Source", "source_name", "lead_source.txt"),
 		("Sales Partner Type", "sales_partner_type", "sales_partner_type.txt"),
 	):
 		records += [{"doctype": doctype, title_field: title} for title in read_lines(filename)]
@@ -296,7 +302,7 @@ def install(country=None):
 	set_up_address_templates(default_country=country)
 	update_selling_defaults()
 	update_buying_defaults()
-	add_uom_data()
+	# add_uom_data()
 	update_item_variant_settings()
 	update_global_search_doctypes()
 
@@ -424,27 +430,27 @@ def install_company(args):
 
 
 def install_defaults(args=None):  # nosemgrep
-	records = [
-		# Price Lists
-		{
-			"doctype": "Price List",
-			"price_list_name": _("Standard Buying"),
-			"enabled": 1,
-			"buying": 1,
-			"selling": 0,
-			"currency": args.currency,
-		},
-		{
-			"doctype": "Price List",
-			"price_list_name": _("Standard Selling"),
-			"enabled": 1,
-			"buying": 0,
-			"selling": 1,
-			"currency": args.currency,
-		},
-	]
+	# records = [
+	# 	# Price Lists
+	# 	{
+	# 		"doctype": "Price List",
+	# 		"price_list_name": _("Standard Buying"),
+	# 		"enabled": 1,
+	# 		"buying": 1,
+	# 		"selling": 0,
+	# 		"currency": args.currency,
+	# 	},
+	# 	{
+	# 		"doctype": "Price List",
+	# 		"price_list_name": _("Standard Selling"),
+	# 		"enabled": 1,
+	# 		"buying": 0,
+	# 		"selling": 1,
+	# 		"currency": args.currency,
+	# 	},
+	# ]
 
-	make_records(records)
+	# make_records(records)
 
 	# enable default currency
 	frappe.db.set_value("Currency", args.get("currency"), "enabled", 1)
@@ -480,12 +486,14 @@ def read_excel(file):
 	return final_data
 
 def install_accounting(args=None):
+	print("args ================",args)
+	# xóa dữ liệu mặc định accouting
+	frappe.db.delete("Account")
 	#đọc excel
 	accouting_type = args.accouting_type
 	company =  args.company_name
 	company = frappe.get_doc("Company", company)
 	data = read_excel(f"{accouting_type}.xlsx")
-	print("data================",data)
 	from erpnext.accounts.doctype.chart_of_accounts_importer.chart_of_accounts_importer import build_forest,create_charts
 	#xử lý dữ liệu excel vào doctype accouting
 	frappe.local.flags.ignore_root_company_validation = True
@@ -556,7 +564,7 @@ def install_accounting(args=None):
 		"default_provisional_account": "",
 		"expenses_included_in_valuation": ""
 	}
-	# company = frappe.get_doc("Company", company)
+	# xử lý cấu hình accouting company
 	if accouting_type == "tt133":
 		update_accounting.update({
 			"default_discount_account":frappe.db.get_value(
@@ -593,15 +601,42 @@ def install_accounting(args=None):
 	company.save()
 	install_country_fixtures(company.name, company.country)
 	company.create_default_tax_template()
-	# xử lý cấu hình accouting company
 
 
 
 	# thiết lập “Default valuation method” trong stock setting
 	inven_valua_method = args.inven_valua_method
-	stock_setting = frappe.get_single("Stock Settings")
+	stock_setting = frappe.get_doc("Stock Settings")
 	stock_setting.set("valuation_method",inven_valua_method)
 	stock_setting.save()
+
+	# xử lý xóa dữ liệu không cần thiết
+	# frappe.db.delete("Item Group")
+	frappe.db.delete("Purchase Taxes and Charges Template")
+	# frappe.db.delete("Supplier Group")
+	frappe.db.delete("Supplier Scorecard Variable")
+	frappe.db.delete("Supplier Scorecard Standing")
+	# frappe.db.delete("Sales Person")
+	frappe.db.delete("Sales Taxes and Charges Template")
+	# frappe.db.delete("Lead Source")
+	# frappe.db.delete("Customer Group")
+	# frappe.db.delete("Territory")
+	frappe.db.delete("Department")
+	# frappe.db.delete("Designation")
+	frappe.db.delete("Energy Point Rule")
+	# frappe.db.delete("Activity Type")
+	frappe.db.delete("Expense Claim Type")
+	frappe.db.delete("Vehicle Service Item")
+	frappe.db.delete("Leave Type")
+	frappe.db.delete("Role Profile")
+	frappe.db.delete("Warehouse")
+	# frappe.db.delete("UOM")
+	# frappe.db.delete("Item Attribute")
+	frappe.db.delete("UOM Conversion Factor")
+	frappe.db.delete("Email Account")
+	frappe.db.commit()
+
+
 
 def set_global_defaults(args):
 	global_defaults = frappe.get_doc("Global Defaults", "Global Defaults")
@@ -621,7 +656,7 @@ def update_stock_settings():
 	stock_settings = frappe.get_doc("Stock Settings")
 	stock_settings.item_naming_by = "Item Code"
 	stock_settings.valuation_method = "FIFO"
-	stock_settings.default_warehouse = frappe.db.get_value("Warehouse", {"warehouse_name": _("Stores")})
+	# stock_settings.default_warehouse = frappe.db.get_value("Warehouse", {"warehouse_name": _("Stores")})
 	stock_settings.stock_uom = _("Nos")
 	stock_settings.auto_indent = 1
 	stock_settings.auto_insert_price_list_rate_if_missing = 1

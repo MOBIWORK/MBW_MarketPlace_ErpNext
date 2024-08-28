@@ -55,8 +55,8 @@ erpnext.setup.slides_settings = [
 				label: __("Inventory Valuation Method"),
 				options: [
 					{ "value": "FIFO", "label": __("Nhập trước xuất trước") },
-					{ "value": "LIFO", "label": __("Nhập sau xuất trước") },
 					{ "value": "Moving Average", "label": __("Bình quân gia quyền") },
+					{ "value": "LIFO", "label": __("Nhập sau xuất trước") },
 				],
 				fieldtype: "Select",
 				default: "FIFO",
@@ -68,14 +68,14 @@ erpnext.setup.slides_settings = [
 			// end date should be hidden (auto calculated)
 			{ fieldname: "fy_end_date", label: __("End Date"), fieldtype: "Date", reqd: 1, hidden: 1 },
 			{ fieldtype: "Section Break" },
-			{
-				fieldname: "setup_demo",
-				label: __("Generate Demo Data for Exploration"),
-				fieldtype: "Check",
-				description: __(
-					"If checked, we will create demo data for you to explore the system. This demo data can be erased later."
-				),
-			},
+			// {
+			// 	fieldname: "setup_demo",
+			// 	label: __("Generate Demo Data for Exploration"),
+			// 	fieldtype: "Check",
+			// 	description: __(
+			// 		"If checked, we will create demo data for you to explore the system. This demo data can be erased later."
+			// 	),
+			// },
 		],
 
 		onload: function (slide) {
