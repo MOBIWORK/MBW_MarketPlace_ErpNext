@@ -606,6 +606,7 @@ def install_accounting(args=None):
 
 	# thiết lập “Default valuation method” trong stock setting
 	inven_valua_method = args.inven_valua_method
+	print("inven_valua_method",inven_valua_method)
 	stock_setting = frappe.get_doc("Stock Settings")
 	stock_setting.set("valuation_method",inven_valua_method)
 	stock_setting.save()
