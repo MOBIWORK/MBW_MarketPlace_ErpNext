@@ -414,8 +414,10 @@ def install_accounting(args=None):
 	frappe.db.delete("Territory")
 	frappe.db.delete("Designation")
 	frappe.db.delete("Activity Type")
-	frappe.db.delete("Expense Claim Type")
-	frappe.db.delete("Vehicle Service Item")
+	if frappe.db.table_exists("Expense Claim Type"):
+		frappe.db.delete("Expense Claim Type")
+	if frappe.db.table_exists("Vehicle Service Item"):
+		frappe.db.delete("Vehicle Service Item")
 	frappe.db.delete("UOM")
 	frappe.db.delete("Item Attribute")
 	frappe.db.delete("UOM Conversion Factor")
