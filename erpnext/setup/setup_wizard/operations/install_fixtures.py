@@ -271,7 +271,7 @@ def install_defaults(args=None):  # nosemgrep
 	frappe.db.set_single_value("Stock Settings", "email_footer_address", args.get("company_name"))
 
 	set_global_defaults(args)
-	update_stock_settings()
+	# update_stock_settings()
 
 	args.update({"set_default": 1})
 
@@ -359,6 +359,7 @@ def install_accounting(args=None):
 		"asset_received_but_not_billed": None,
 		"expenses_included_in_valuation": None,
 		"disposal_account": None,
+		"expenses_included_in_asset_valuation":None
 	}
 	# xử lý cấu hình accouting company
 	if accouting_type == "tt133":
