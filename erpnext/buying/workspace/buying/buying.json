@@ -472,7 +472,7 @@
    "type": "Link"
   }
  ],
- "modified": "2024-08-28 15:02:09.270292",
+ "modified": "2024-09-09 10:28:17.787653",
  "modified_by": "Administrator",
  "module": "Buying",
  "name": "Buying",
@@ -483,7 +483,7 @@
  "quick_lists": [],
  "restrict_to_domain": "",
  "roles": [],
- "sequence_id": 5.0,
+ "sequence_id": 7.0,
  "shortcuts": [
   {
    "color": "Green",
