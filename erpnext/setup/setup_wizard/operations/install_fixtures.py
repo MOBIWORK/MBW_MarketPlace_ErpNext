@@ -352,6 +352,9 @@ def install_accounting(args=None):
 		"stock_received_but_not_billed": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 335}
 				),
+		"default_inventory_account":frappe.db.get_value(
+				"Account", {"company": company.name, "account_number": 152}
+			),
 		"write_off_account": None,
 		"exchange_gain_loss_account": None,
 		"expenses_included_in_asset_valuation": None,
@@ -370,9 +373,7 @@ def install_accounting(args=None):
 			"default_payroll_payable_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 334}
 				) ,
-			"default_inventory_account":frappe.db.get_value(
-					"Account", {"company": company.name, "account_number": 155}
-				)
+			
 		})
 		company.update(
 			update_accounting
@@ -387,9 +388,6 @@ def install_accounting(args=None):
 				),
 				"default_payroll_payable_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 3341}
-				),
-				"default_inventory_account":frappe.db.get_value(
-					"Account", {"company": company.name, "account_number": 1551}
 				)})
 	print("update_accounting====================",update_accounting)
 	company.update(update_accounting)
