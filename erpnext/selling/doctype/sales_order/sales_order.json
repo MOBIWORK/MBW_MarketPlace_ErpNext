@@ -573,6 +573,7 @@
    "label": "Items"
   },
   {
+   "allow_on_submit": 1,
    "fieldname": "set_warehouse",
    "fieldtype": "Link",
    "hide_days": 1,
