@@ -243,7 +243,8 @@ frappe.ui.form.on("Pick List", {
 					territory: null,
 					total_qty:null,
 					transaction_date: null,
-					da_pick_hang: null
+					da_pick_hang: null,
+					xac_nhan_giao_hang: null
 				},
 				size: "extra-large",
 				date_field: "transaction_date",
