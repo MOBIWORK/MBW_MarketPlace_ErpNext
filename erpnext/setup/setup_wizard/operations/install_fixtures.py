@@ -350,7 +350,7 @@ def install_accounting(args=None):
 					"Account", {"company": company.name, "account_number": 811}
 				),
 		"stock_received_but_not_billed": frappe.db.get_value(
-					"Account", {"company": company.name, "account_number": 335}
+					"Account", {"company": company.name, "account_number": 151}
 				),
 		"default_inventory_account":frappe.db.get_value(
 				"Account", {"company": company.name, "account_number": 152}
