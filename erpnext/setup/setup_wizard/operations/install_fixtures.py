@@ -373,7 +373,7 @@ def install_accounting(args=None):
 			"default_payroll_payable_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 334}
 				) ,
-			
+			"account_vas_template":133
 		})
 		company.update(
 			update_accounting
@@ -388,7 +388,9 @@ def install_accounting(args=None):
 				),
 				"default_payroll_payable_account":frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 3341}
-				)})
+				),
+				"account_vas_template":200
+				})
 	print("update_accounting====================",update_accounting)
 	company.update(update_accounting)
 	company.save()
