@@ -298,13 +298,7 @@ def read_excel(file):
 
 	return final_data
 
-def install_accounting(args=None):
-	# xóa dữ liệu mặc định accouting
-	frappe.db.delete("Account")
-	#đọc excel
-	accouting_type = args.accouting_type
-	company =  args.company_name
-	company = frappe.get_doc("Company", company)
+def create_acounting(accouting_type,company):
 	data = read_excel(f"{accouting_type}.xlsx")
 	from erpnext.accounts.doctype.chart_of_accounts_importer.chart_of_accounts_importer import build_forest,create_charts
 	#xử lý dữ liệu excel vào doctype accouting
@@ -312,8 +306,8 @@ def install_accounting(args=None):
 	forest = build_forest(data)
 	create_charts(company, custom_chart=forest, from_coa_importer=True)
 
-	# trigger on_update for company to reset default accounts
-	from erpnext.setup.doctype.company.company import install_country_fixtures
+
+def set_accounting_default(company,accouting_type) :
 	update_accounting =  {
 		"default_bank_account" : frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 1121}
@@ -343,9 +337,9 @@ def install_accounting(args=None):
 		"depreciation_expense_account": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 6424}
 				),
-		"default_employee_advance_account":frappe.db.get_value(
-					"Account", {"company": company.name, "account_number": 141}
-				),
+		# "default_employee_advance_account":frappe.db.get_value(
+		# 			"Account", {"company": company.name, "account_number": 141}
+		# 		),
 		"stock_adjustment_account": frappe.db.get_value(
 					"Account", {"company": company.name, "account_number": 811}
 				),
@@ -375,9 +369,9 @@ def install_accounting(args=None):
 				) ,
 			"account_vas_template":133
 		})
-		company.update(
-			update_accounting
-		)
+		# company.update(
+		# 	update_accounting
+		# )
 	elif accouting_type == "tt200" : 
 		update_accounting.update({
 				"default_deferred_expense_account": frappe.db.get_value(
@@ -391,7 +385,25 @@ def install_accounting(args=None):
 				),
 				"account_vas_template":200
 				})
-	print("update_accounting====================",update_accounting)
+	return update_accounting
+def install_accounting(args=None):
+	# xóa dữ liệu mặc định accouting
+	frappe.db.delete("Account")
+	#đọc excel
+	accouting_type = args.accouting_type
+	company =  args.company_name
+	company = frappe.get_doc("Company", company)
+	create_acounting(accouting_type,company)
+	# data = read_excel(f"{accouting_type}.xlsx")
+	# from erpnext.accounts.doctype.chart_of_accounts_importer.chart_of_accounts_importer import build_forest,create_charts
+	# #xử lý dữ liệu excel vào doctype accouting
+	# frappe.local.flags.ignore_root_company_validation = True
+	# forest = build_forest(data)
+	# create_charts(company, custom_chart=forest, from_coa_importer=True)
+
+	# trigger on_update for company to reset default accounts
+	from erpnext.setup.doctype.company.company import install_country_fixtures
+	update_accounting =  set_accounting_default(company,accouting_type)
 	company.update(update_accounting)
 	company.save()
 	install_country_fixtures(company.name, company.country)

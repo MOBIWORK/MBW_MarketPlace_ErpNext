@@ -16,7 +16,7 @@ from frappe.utils.nestedset import NestedSet, rebuild_tree
 
 from erpnext.accounts.doctype.account.account import get_account_currency
 from erpnext.setup.setup_wizard.operations.taxes_setup import setup_taxes_and_charges
-
+from erpnext.setup.setup_wizard.operations.install_fixtures import create_acounting,set_accounting_default
 
 class Company(NestedSet):
 	# begin: auto-generated types
@@ -236,6 +236,7 @@ class Company(NestedSet):
 
 	def on_update(self):
 		NestedSet.on_update(self)
+		# kiểm tra tồn tại Account
 		if not frappe.db.sql(
 			"""select name from tabAccount
 				where company=%s and docstatus<2 limit 1""",
@@ -243,6 +244,7 @@ class Company(NestedSet):
 		):
 			if not frappe.local.flags.ignore_chart_of_accounts:
 				frappe.flags.country_change = True
+				# gán tài khoản receive , Payable
 				self.create_default_accounts()
 				self.create_default_warehouses()
 
@@ -304,24 +306,33 @@ class Company(NestedSet):
 				warehouse.flags.ignore_mandatory = True
 				warehouse.insert()
 
+	def after_delete(self):
+		frappe.db.delete("Account",{"company":self.name})
+
+	# gán tài khoản kế toán mặc định cho công ty
 	def create_default_accounts(self):
-		from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import create_charts
+		# from erpnext.accounts.doctype.account.chart_of_accounts.chart_of_accounts import create_charts
 
 		frappe.local.flags.ignore_root_company_validation = True
-		create_charts(self.name, self.chart_of_accounts, self.existing_company)
+		create_acounting(f"tt{self.account_vas_template}",self)
+		self.accounting_list= frappe._dict(set_accounting_default(self,f"tt{self.account_vas_template}"))
+		account_import_first = ["default_receivable_account","default_payable_account"]
+		for account,value in self.accounting_list.items():
+			if not self.get(account) and account in account_import_first:
+				self.db_set(account,value)
 
 		self.db_set(
-			"default_receivable_account",
-			frappe.db.get_value(
-				"Account", {"company": self.name, "account_type": "Receivable", "is_group": 0}
-			),
+			"default_receivable_account",self.accounting_list.default_receivable_account
+			# frappe.db.get_value(
+			# 	"Account", {"company": self.name, "account_type": "Receivable", "is_group": 0}
+			# ),
 		)
 
 		self.db_set(
-			"default_payable_account",
-			frappe.db.get_value("Account", {"company": self.name, "account_type": "Payable", "is_group": 0}),
+			"default_payable_account",self.accounting_list.default_payable_account
+			# frappe.db.get_value("Account", {"company": self.name, "account_type": "Payable", "is_group": 0}),
 		)
-
+	# tạo phòng ban mặc định
 	def create_default_departments(self):
 		records = [
 			# Department
@@ -479,6 +490,7 @@ class Company(NestedSet):
 			if not is_group:
 				frappe.throw(_("Parent Company must be a group company"))
 
+	# đặt thêm tài khoản kế toán cho công ty tạo
 	def set_default_accounts(self):
 		default_accounts = {
 			"default_cash_account": "Cash",
@@ -504,50 +516,33 @@ class Company(NestedSet):
 
 		if self.update_default_account:
 			for default_account in default_accounts:
-				self._set_default_account(default_account, default_accounts.get(default_account))
+				self._set_default_account(default_account, self.accounting_list[default_account])
 
 		if not self.default_income_account:
-			income_account = frappe.db.get_all(
-				"Account",
-				filters={"company": self.name, "is_group": 0},
-				or_filters={
-					"account_name": ("in", [_("Sales"), _("Sales Account")]),
-					"account_type": "Income Account",
-				},
-				pluck="name",
-			)
+			# income_account = frappe.db.get_all(
+			# 	"Account",
+			# 	filters={"company": self.name, "is_group": 0},
+			# 	or_filters={
+			# 		"account_name": ("in", [_("Sales"), _("Sales Account")]),
+			# 		"account_type": "Income Account",
+			# 	},
+			# 	pluck="name",
+			# )
 
-			if income_account:
-				income_account = income_account[0]
-			else:
-				income_account = None
+			# if income_account:
+			# 	income_account = income_account[0]
+			# else:
+			# 	income_account = None
 
-			self.db_set("default_income_account", income_account)
+			self.db_set("default_income_account",self.accounting_list["default_income_account"])
 
 		if not self.default_payable_account:
-			self.db_set("default_payable_account", self.default_payable_account)
-
-		if not self.write_off_account:
-			write_off_acct = frappe.db.get_value(
-				"Account", {"account_name": _("Write Off"), "company": self.name, "is_group": 0}
-			)
-
-			self.db_set("write_off_account", write_off_acct)
-
-		if not self.exchange_gain_loss_account:
-			exchange_gain_loss_acct = frappe.db.get_value(
-				"Account", {"account_name": _("Exchange Gain/Loss"), "company": self.name, "is_group": 0}
-			)
-
-			self.db_set("exchange_gain_loss_account", exchange_gain_loss_acct)
-
-		if not self.disposal_account:
-			disposal_acct = frappe.db.get_value(
-				"Account",
-				{"account_name": _("Gain/Loss on Asset Disposal"), "company": self.name, "is_group": 0},
-			)
-
-			self.db_set("disposal_account", disposal_acct)
+			self.db_set("default_payable_account", self.accounting_list["default_payable_account"])
+			# self.db_set("default_payable_account", self.default_payable_account)
+		not_in  = ["default_payroll_payable_account",]
+		for account,value in self.accounting_list.items():
+			if not self.get(account) and account not in not_in:
+				self.db_set(account,value)
 
 	def _set_default_account(self, fieldname, account_type):
 		if self.get(fieldname):
@@ -597,9 +592,9 @@ class Company(NestedSet):
 				cc_doc.flags.ignore_mandatory = True
 			cc_doc.insert()
 
-		self.db_set("cost_center", _("Main") + " - " + self.abbr)
-		self.db_set("round_off_cost_center", _("Main") + " - " + self.abbr)
-		self.db_set("depreciation_cost_center", _("Main") + " - " + self.abbr)
+		# self.db_set("cost_center", _("Main") + " - " + self.abbr)
+		# self.db_set("round_off_cost_center", _("Main") + " - " + self.abbr)
+		# self.db_set("depreciation_cost_center", _("Main") + " - " + self.abbr)
 
 	def after_rename(self, olddn, newdn, merge=False):
 		self.db_set("company_name", newdn)
@@ -698,7 +693,7 @@ class Company(NestedSet):
 		):
 			frappe.flags.parent_company_changed = True
 
-
+# end class company
 def get_name_with_abbr(name, company):
 	company_abbr = frappe.get_cached_value("Company", company, "abbr")
 	parts = name.split(" - ")
