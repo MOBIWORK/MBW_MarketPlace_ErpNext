@@ -519,30 +519,16 @@ class Company(NestedSet):
 				self._set_default_account(default_account, self.accounting_list[default_account])
 
 		if not self.default_income_account:
-			# income_account = frappe.db.get_all(
-			# 	"Account",
-			# 	filters={"company": self.name, "is_group": 0},
-			# 	or_filters={
-			# 		"account_name": ("in", [_("Sales"), _("Sales Account")]),
-			# 		"account_type": "Income Account",
-			# 	},
-			# 	pluck="name",
-			# )
-
-			# if income_account:
-			# 	income_account = income_account[0]
-			# else:
-			# 	income_account = None
 
 			self.db_set("default_income_account",self.accounting_list["default_income_account"])
 
 		if not self.default_payable_account:
 			self.db_set("default_payable_account", self.accounting_list["default_payable_account"])
-			# self.db_set("default_payable_account", self.default_payable_account)
-		not_in  = ["default_payroll_payable_account",]
-		for account,value in self.accounting_list.items():
-			if not self.get(account) and account not in not_in:
-				self.db_set(account,value)
+		not_in  = []
+		if self.get("accounting_list"):
+			for account,value in self.accounting_list.items():
+				if not self.get(account) and account not in not_in:
+					self.db_set(account,value)
 
 	def _set_default_account(self, fieldname, account_type):
 		if self.get(fieldname):
@@ -591,10 +577,6 @@ class Company(NestedSet):
 			if cc.get("cost_center_name") == self.name:
 				cc_doc.flags.ignore_mandatory = True
 			cc_doc.insert()
-
-		# self.db_set("cost_center", _("Main") + " - " + self.abbr)
-		# self.db_set("round_off_cost_center", _("Main") + " - " + self.abbr)
-		# self.db_set("depreciation_cost_center", _("Main") + " - " + self.abbr)
 
 	def after_rename(self, olddn, newdn, merge=False):
 		self.db_set("company_name", newdn)
