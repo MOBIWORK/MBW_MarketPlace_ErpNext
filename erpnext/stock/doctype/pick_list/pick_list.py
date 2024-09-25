@@ -970,8 +970,14 @@ def get_available_item_locations_for_batched_item(
 	batch_wise_warehouses = frappe._dict()
 	rejected_warehouses = get_rejected_warehouses()
 
+	warehouses_to_exclude = frappe.get_all("Warehouse", filters={"custom_kho_khu_cho_xu_li": 1}, fields=["name"])
+	warehouses_to_excludes = [wh.name for wh in warehouses_to_exclude]
+
 	for d in data:
 		if not consider_rejected_warehouses and rejected_warehouses and d.warehouse in rejected_warehouses:
+			continue
+
+		if d.warehouse in warehouses_to_excludes:
 			continue
 
 		if d.batch_nos not in batch_wise_warehouses:
