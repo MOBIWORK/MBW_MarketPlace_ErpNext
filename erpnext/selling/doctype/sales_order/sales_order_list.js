@@ -72,4 +72,17 @@ frappe.listview_settings["Sales Order"] = {
 			erpnext.bulk_transaction_processing.create(listview, "Sales Order", "Payment Entry");
 		});
 	},
+	refresh: function (listview) {
+        // Wait for the list view to be refreshed before executing the code
+        setTimeout(function() {
+            // Add 'list-subject' class to the header (if needed)
+            $(".list-row-col span:contains('ID')").each(function() {
+                $(this).closest('.list-row-col').addClass('list-subject');
+            });
+
+            // Add 'list-subject' class to the <a> tags containing the actual ID values
+            $(".list-row-col a.filterable[data-filter*='name']").each(function() {
+                $(this).closest('.list-row-col').addClass('list-subject');  // Apply 'list-subject' class to the parent div
+            });
+        }, 100);}
 };
