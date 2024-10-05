@@ -84,5 +84,14 @@ frappe.listview_settings["Sales Order"] = {
             $(".list-row-col a.filterable[data-filter*='name']").each(function() {
                 $(this).closest('.list-row-col').addClass('list-subject');  // Apply 'list-subject' class to the parent div
             });
-        }, 100);}
+
+      let styleElement = document.createElement('style');
+            styleElement.innerHTML = `
+                .list-row .level-left, .list-row-head .level-left {
+                    min-width: 95% !important; 
+                }
+            `;
+            document.head.appendChild(styleElement);
+        }, 100);
+    }
 };
