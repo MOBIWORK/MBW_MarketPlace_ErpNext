@@ -88,7 +88,7 @@ frappe.listview_settings["Sales Order"] = {
       let styleElement = document.createElement('style');
             styleElement.innerHTML = `
                 .list-row .level-left, .list-row-head .level-left {
-                    min-width: 95% !important; 
+                    min-width: 90% !important; 
                 }
             `;
             document.head.appendChild(styleElement);
