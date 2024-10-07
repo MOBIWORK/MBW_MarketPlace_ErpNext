@@ -78,12 +78,14 @@ frappe.ui.form.ContactAddressQuickEntryForm = class ContactAddressQuickEntryForm
 			{
 				label: __("City"),
 				fieldname: "city",
-				fieldtype: "Data",
+				fieldtype: "Link",
+				options: "DMS Province",
 			},
 			{
-				label: __("State"),
-				fieldname: "state",
-				fieldtype: "Data",
+				label: __("County/District"),
+				fieldname: "county",
+				fieldtype: "Link",
+				options: "DMS District",
 			},
 			{
 				label: __("Country"),
