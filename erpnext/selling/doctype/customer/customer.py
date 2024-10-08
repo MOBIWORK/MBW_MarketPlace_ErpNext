@@ -259,8 +259,11 @@ class Customer(TransactionBase):
 
 		if self.flags.is_new_doc and self.get("address_line1"):
 			address = make_address(self)
-			address_display = get_address_display(address.name)
+			state = frappe.get_doc("DMS Ward", address.state)
+			county = frappe.get_doc("DMS District", address.county)
+			city = frappe.get_doc("DMS Province", address.city)
 
+			address_display = f"{address.address_line1}<br>{state.ten_xa}<br>{county.ten_huyen}<br>{city.ten_tinh}<br>{address.country}<br>"
 			self.db_set("customer_primary_address", address.name)
 			self.db_set("primary_address", address_display)
 
@@ -770,6 +773,7 @@ def make_address(args, is_primary_address=1, is_shipping_address=1):
 			"state": args.get("state"),
 			"pincode": args.get("pincode"),
 			"country": args.get("country"),
+			"county": args.get("county"),
 			"is_primary_address": is_primary_address,
 			"is_shipping_address": is_shipping_address,
 			"links": [{"link_doctype": args.get("doctype"), "link_name": args.get("name")}],
