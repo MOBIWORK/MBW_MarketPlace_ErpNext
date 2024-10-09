@@ -1063,6 +1063,13 @@ class AccountsController(TransactionBase):
 			"Stock Entry": "stock_entry_type",
 			"Asset Capitalization": "entry_type",
 		}
+
+		for method_name in frappe.get_hooks("voucher_subtypes"):
+			voucher_subtype = frappe.get_attr(method_name)(self)
+
+			if voucher_subtype:
+				return voucher_subtype
+
 		if self.doctype in voucher_subtypes:
 			return self.get(voucher_subtypes[self.doctype])
 		elif self.doctype == "Purchase Receipt" and self.is_return:
@@ -1073,6 +1080,7 @@ class AccountsController(TransactionBase):
 			return "Credit Note"
 		elif (self.doctype == "Purchase Invoice" and self.is_return) or self.doctype == "Sales Invoice":
 			return "Debit Note"
+
 		return self.doctype
 
 	def get_value_in_transaction_currency(self, account_currency, gl_dict, field):
@@ -3309,7 +3317,6 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 	items_added_or_removed = False  # updated to true if any new item is added or removed
 	any_conversion_factor_changed = False
 
-	sales_doctypes = ["Sales Order", "Sales Invoice", "Delivery Note", "Quotation"]
 	parent = frappe.get_doc(parent_doctype, parent_doctype_name)
 
 	check_doc_permissions(parent, "write")
@@ -3425,25 +3432,21 @@ def update_child_qty_rate(parent_doctype, trans_items, parent_doctype_name, chil
 				#  if rate is greater than price_list_rate, set margin
 				#  or set discount
 				child_item.discount_percentage = 0
-
-				if parent_doctype in sales_doctypes:
-					child_item.margin_type = "Amount"
-					child_item.margin_rate_or_amount = flt(
-						child_item.rate - child_item.price_list_rate,
-						child_item.precision("margin_rate_or_amount"),
-					)
-					child_item.rate_with_margin = child_item.rate
+				child_item.margin_type = "Amount"
+				child_item.margin_rate_or_amount = flt(
+					child_item.rate - child_item.price_list_rate,
+					child_item.precision("margin_rate_or_amount"),
+				)
+				child_item.rate_with_margin = child_item.rate
 			else:
 				child_item.discount_percentage = flt(
 					(1 - flt(child_item.rate) / flt(child_item.price_list_rate)) * 100.0,
 					child_item.precision("discount_percentage"),
 				)
 				child_item.discount_amount = flt(child_item.price_list_rate) - flt(child_item.rate)
-
-				if parent_doctype in sales_doctypes:
-					child_item.margin_type = ""
-					child_item.margin_rate_or_amount = 0
-					child_item.rate_with_margin = 0
+				child_item.margin_type = ""
+				child_item.margin_rate_or_amount = 0
+				child_item.rate_with_margin = 0
 
 		child_item.flags.ignore_validate_update_after_submit = True
 		if new_child_flag:
