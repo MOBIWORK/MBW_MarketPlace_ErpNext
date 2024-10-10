@@ -51,18 +51,31 @@ frappe.ui.form.on("Delivery Trip", {
 			frm.add_custom_button(
 				__("Delivery Note"),
 				() => {
-					erpnext.utils.map_current_doc({
-						method: "erpnext.stock.doctype.delivery_note.delivery_note.make_delivery_trip",
-						source_doctype: "Delivery Note",
-						target: frm,
-						date_field: "posting_date",
-						setters: {
-							company: frm.doc.company,
-						},
-						get_query_filters: {
-							docstatus: 1,
-							company: frm.doc.company,
-						},
+					frappe.call({
+						method: "mbw_rtg.controllers.delivery_trip.get_available_delivery_notes",
+						callback: function(r) {
+							if (r.message) {
+								let delivery_notes_with_trip = r.message;
+		
+								erpnext.utils.map_current_doc({
+									method: "erpnext.stock.doctype.delivery_note.delivery_note.make_delivery_trip",
+									source_doctype: "Delivery Note",
+									target: frm,
+									date_field: "posting_date",
+									setters: {
+										customer_name: null,
+										posting_date: null,
+										territory: null,
+										tong_thung_dong_hang: null,
+										tong_trong_luong: null,
+									},
+									get_query_filters: {
+										docstatus: 1,
+										name: ["not in", delivery_notes_with_trip]
+									}
+								});
+							}
+						}
 					});
 				},
 				__("Get stops from")
