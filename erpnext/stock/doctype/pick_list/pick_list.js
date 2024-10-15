@@ -89,17 +89,18 @@ frappe.ui.form.on("Pick List", {
 		frm.events.set_item_locations(frm, false);
 	},
 	refresh: (frm) => {
-		let sorting_dropdown = $('<select class="form-group frappe-control form-control col-md-2 input-with-feedback input-xs" style="position: absolute; top: -9px;right: 0;"></select>')
-            .append('<option>Select sort</option>')
-            .append('<option value="item">Sort by Item</option>')
-            .append('<option value="warehouse">Sort by Warehouse</option>')
+		$(frm.fields_dict['locations'].wrapper).find('select.sorting-dropdown').remove();
 
-        $(frm.fields_dict['locations'].wrapper).prepend(sorting_dropdown);
-
-        sorting_dropdown.on('change', function() {
-            let selected_value = $(this).val();
-            sort_child_table(frm, selected_value);
-        });
+		let sorting_dropdown = $('<select class="sorting-dropdown form-group frappe-control form-control col-md-2 input-with-feedback input-xs" style="position: absolute; top: -9px;right: 0;"></select>')
+			.append('<option value= "" selected="selected">Select sort</option>')
+			.append('<option value="item">Sort by Item</option>')
+			.append('<option value="warehouse">Sort by Warehouse</option>')
+		$(frm.fields_dict['locations'].wrapper).prepend(sorting_dropdown);
+		sorting_dropdown.val("");
+		sorting_dropdown.on('change', function () {
+			let selected_value = $(this).val();
+			sort_child_table(frm, selected_value);
+		});
 		frm.trigger("add_get_items_button");
 		if (frm.doc.docstatus === 1) {
 			frappe
@@ -396,24 +397,34 @@ function get_item_details(item_code, uom = null) {
 }
 
 function sort_child_table(frm, sort_field) {
-	if (sort_field === "item"){
-		frm.doc.locations.sort((a, b) => {
-			const itemA = a.item_name.trimStart() || '';
-			const itemB = b.item_name.trimStart() || '';
-			return itemA.localeCompare(itemB);
-		})
+	if (sort_field !== "") {
+		if (sort_field === "item") {
+			frm.doc.locations.sort((a, b) => {
+				const itemA = a.item_name.trimStart() || '';
+				const itemB = b.item_name.trimStart() || '';
+				return itemA.localeCompare(itemB);
+			})
+		} else if (sort_field === "warehouse") {
+			frm.doc.locations.sort((a, b) => {
+				const itemA = a.warehouse || '';
+				const itemB = b.warehouse || '';
+				return itemA.localeCompare(itemB);
+			})
 		}
-	else if (sort_field === "warehouse"){
-		frm.doc.locations.sort((a, b) => {
-			const itemA = a.warehouse || '';
-			const itemB = b.warehouse || '';
-			return itemA.localeCompare(itemB);
-		})
-		}
-	frm.doc.locations.forEach((item, index) => {
-		item.idx = index + 1;
-	});
-	console.log(frm.doc.locations)
+		frm.doc.locations.forEach((item, index) => {
+			item.idx = index + 1;
+		});
+		frappe.call({
+			method: "mbw_rtg.controllers.pick_list.update_sorted_locations",
+			args: {
+				doc: frm.doc.name,
+				sort_field: sort_field
+			},
+			callback(r) {
+				refresh_field("locations");
+			},
+		});
+	}
 	refresh_field("locations");
 }
 
