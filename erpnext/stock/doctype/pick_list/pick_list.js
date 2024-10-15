@@ -417,7 +417,7 @@ function sort_child_table(frm, sort_field) {
 		frappe.call({
 			method: "mbw_rtg.controllers.pick_list.update_sorted_locations",
 			args: {
-				doc: frm.doc.name,
+				doc_name: frm.doc.name,
 				sort_field: sort_field
 			},
 			callback(r) {
