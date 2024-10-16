@@ -78,14 +78,23 @@ def get_data(conditions, filters):
 			(soi.base_amount - (soi.billed_amt * IFNULL(so.conversion_rate, 1))) as pending_amount,
 			soi.warehouse as warehouse,
 			so.company, soi.name,
-			soi.description as description
+			soi.description as description,
+   			GROUP_CONCAT(st.sales_person SEPARATOR ', ') AS sales_person,
+            GROUP_CONCAT(sp.sales_person_name SEPARATOR ', ') AS sales_person_name,
+			GROUP_CONCAT(parent_sp.sales_person_name SEPARATOR ', ') AS parent_sales_person
 		FROM
-			`tabSales Order` so,
-			`tabSales Order Item` soi
-		LEFT JOIN `tabSales Invoice Item` sii
-			ON sii.so_detail = soi.name and sii.docstatus = 1
+            `tabSales Order` so
+        JOIN `tabSales Order Item` soi
+            ON soi.parent = so.name
+        LEFT JOIN `tabSales Invoice Item` sii
+            ON sii.so_detail = soi.name AND sii.docstatus = 1
+        LEFT JOIN `tabSales Team` st
+            ON st.parent = so.name AND st.parenttype = 'Sales Order'
+        LEFT JOIN `tabSales Person` sp
+            ON sp.name = st.sales_person
+		LEFT JOIN `tabSales Person` parent_sp
+    		ON parent_sp.name = sp.parent_sales_person
 		WHERE
-			soi.parent = so.name
 			and so.status not in ('Stopped', 'Closed', 'On Hold')
 			and so.docstatus = 1
 			{conditions}
@@ -226,6 +235,18 @@ def get_columns(filters):
 			"width": 160,
 		},
 		{"label": _("Status"), "fieldname": "status", "fieldtype": "Data", "width": 130},
+		{
+            "label": _("Sales Person Name"),
+            "fieldname": "sales_person_name",
+            "fieldtype": "Data",
+            "width": 160,
+        },
+		{
+            "label": _("Parent Sales Person"),
+            "fieldname": "parent_sales_person",
+            "fieldtype": "Data",
+            "width": 160,
+        },
 		{
 			"label": _("Customer"),
 			"fieldname": "customer",
