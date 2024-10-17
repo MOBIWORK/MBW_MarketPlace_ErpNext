@@ -95,7 +95,7 @@ def get_data(conditions, filters):
 		LEFT JOIN `tabSales Person` parent_sp
     		ON parent_sp.name = sp.parent_sales_person
 		WHERE
-			and so.status not in ('Stopped', 'Closed', 'On Hold')
+			so.status not in ('Stopped', 'Closed', 'On Hold')
 			and so.docstatus = 1
 			{conditions}
 		GROUP BY soi.name
