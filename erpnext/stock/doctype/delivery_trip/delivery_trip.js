@@ -56,12 +56,13 @@ frappe.ui.form.on("Delivery Trip", {
 						callback: function(r) {
 							if (r.message) {
 								let delivery_notes_with_trip = r.message;
-		
+
 								erpnext.utils.map_current_doc({
 									method: "erpnext.stock.doctype.delivery_note.delivery_note.make_delivery_trip",
 									source_doctype: "Delivery Note",
 									target: frm,
 									date_field: "posting_date",
+									size: "extra-large",
 									setters: {
 										customer_name: null,
 										posting_date: null,
