@@ -296,10 +296,10 @@ erpnext.company.setup_queries = function (frm) {
 					"expenses_included_in_valuation",
 					{ root_type: "Expense", account_type: "Expenses Included in Valuation" },
 				],
-				// [
-				// 	"stock_received_but_not_billed",
-				// 	{ root_type: "Liability", account_type: "Stock Received But Not Billed" },
-				// ],
+				[
+					"stock_received_but_not_billed",
+					{ root_type: "Liability", account_type: "Stock Received But Not Billed" },
+				],
 				[
 					"service_received_but_not_billed",
 					{ root_type: "Liability", account_type: "Service Received But Not Billed" },
@@ -321,6 +321,13 @@ erpnext.company.set_custom_query = function (frm, v) {
 	for (var key in v[1]) {
 		filters[key] = v[1][key];
 	}
+	if(v[0] == "stock_received_but_not_billed"){
+		filters = {
+			company: frm.doc.name,
+			is_group: 0,
+		}
+	}
+	
 	frm.set_query(v[0], function () {
 		return {
 			filters: filters,
