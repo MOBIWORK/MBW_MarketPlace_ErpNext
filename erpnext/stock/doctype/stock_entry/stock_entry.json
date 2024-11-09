@@ -580,7 +580,7 @@
    "fieldtype": "Link",
    "label": "Pick List",
    "options": "Pick List",
-   "read_only": 1,
+   "read_only": 0,
    "search_index": 1
   },
   {
