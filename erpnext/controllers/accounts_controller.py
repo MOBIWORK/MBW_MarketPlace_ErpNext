@@ -1086,7 +1086,7 @@ class AccountsController(TransactionBase):
 			)
 
 	def validate_qty_is_not_zero(self):
-		if self.doctype == "Purchase Receipt":
+		if self.doctype == "Purchase Receipt" or self.doctype == "Delivery Note":
 			return
 
 		for item in self.items:
