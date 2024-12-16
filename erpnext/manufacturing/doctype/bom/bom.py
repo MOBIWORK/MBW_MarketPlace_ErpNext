@@ -214,6 +214,23 @@ class BOM(WebsiteGenerator):
 
 		return index
 
+	def onload(self):
+		super().onload()
+
+		self.set_onload_for_muulti_level_bom()
+
+	def set_onload_for_muulti_level_bom(self):
+		use_multi_level_bom = frappe.db.get_value(
+			"Property Setter",
+			{"field_name": "use_multi_level_bom", "doc_type": "Work Order", "property": "default"},
+			"value",
+		)
+
+		if use_multi_level_bom is None:
+			use_multi_level_bom = 1
+
+		self.set_onload("use_multi_level_bom", cint(use_multi_level_bom))
+
 	@staticmethod
 	def get_next_version_index(existing_boms: list[str]) -> int:
 		# split by "/" and "-"
@@ -259,6 +276,24 @@ class BOM(WebsiteGenerator):
 		self.update_cost(update_parent=False, from_child_bom=True, update_hour_rate=False, save=False)
 		self.set_process_loss_qty()
 		self.validate_scrap_items()
+		self.set_default_uom()
+
+	def set_default_uom(self):
+		if not self.get("items"):
+			return
+
+		item_wise_uom = frappe._dict(
+			frappe.get_all(
+				"Item",
+				filters={"name": ("in", [item.item_code for item in self.items])},
+				fields=["name", "stock_uom"],
+				as_list=1,
+			)
+		)
+
+		for row in self.get("items"):
+			if row.stock_uom != item_wise_uom.get(row.item_code):
+				row.stock_uom = item_wise_uom.get(row.item_code)
 
 	def get_context(self, context):
 		context.parents = [{"name": "boms", "title": _("All BOMs")}]
