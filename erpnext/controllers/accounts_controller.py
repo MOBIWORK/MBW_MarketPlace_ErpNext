@@ -464,9 +464,16 @@ class AccountsController(TransactionBase):
 					)
 
 	def validate_invoice_documents_schedule(self):
-		if self.is_return:
+		if (
+			self.is_return
+			or (self.doctype == "Purchase Invoice" and self.is_paid)
+			or (self.doctype == "Sales Invoice" and self.is_pos)
+			or self.get("is_opening") == "Yes"
+		):
 			self.payment_terms_template = ""
 			self.payment_schedule = []
+
+		if self.is_return:
 			return
 
 		self.validate_payment_schedule_dates()
@@ -1219,7 +1226,7 @@ class AccountsController(TransactionBase):
 		party_account = []
 		default_advance_account = None
 
-		if self.doctype == "Sales Invoice":
+		if self.doctype in ["Sales Invoice", "POS Invoice"]:
 			party_type = "Customer"
 			party = self.customer
 			amount_field = "credit_in_account_currency"
