@@ -579,6 +579,8 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 							child_doctype: item.doctype,
 							child_docname: item.name,
 							is_old_subcontracting_flow: me.frm.doc.is_old_subcontracting_flow,
+							use_serial_batch_fields: item.use_serial_batch_fields,
+							serial_and_batch_bundle: item.serial_and_batch_bundle,
 						}
 					},
 
@@ -1656,7 +1658,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 				},
 				callback: function(r) {
 					if (!r.exc && r.message) {
-						me.remove_pricing_rule(r.message, removed_pricing_rule);
+						me.remove_pricing_rule(r.message, removed_pricing_rule, item.name);
 						me.calculate_taxes_and_totals();
 						if(me.frm.doc.apply_discount_on) me.frm.trigger("apply_discount_on");
 					}
@@ -1749,7 +1751,9 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 					"serial_no": d.serial_no,
 					"batch_no": d.batch_no,
 					"price_list_rate": d.price_list_rate,
-					"conversion_factor": d.conversion_factor || 1.0
+					"conversion_factor": d.conversion_factor || 1.0,
+					"discount_percentage" : d.discount_percentage,
+					"discount_amount" : d.discount_amount,
 				});
 
 				// if doctype is Quotation Item / Sales Order Iten then add Margin Type and rate in item_list
@@ -1825,18 +1829,16 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 
 	apply_rule_on_other_items(args) {
 		const me = this;
-		const fields = ["discount_percentage", "pricing_rules", "discount_amount", "rate"];
+		const fields = ["pricing_rules"];
 
 		for(var k in args) {
 			let data = args[k];
 
 			if (data && data.apply_rule_on_other_items && JSON.parse(data.apply_rule_on_other_items)) {
+				fields.push(frappe.scrub(data.pricing_rule_for))
 				me.frm.doc.items.forEach(d => {
-					if (in_list(JSON.parse(data.apply_rule_on_other_items), d[data.apply_rule_on]) && d.item_code === data.item_code) {
+					if (JSON.parse(data.apply_rule_on_other_items).includes(d[data.apply_rule_on])) {
 						for(var k in data) {
-							if (data.pricing_rule_for == "Discount Percentage" && data.apply_rule_on_other_items && k == "discount_amount") {
-								continue;
-							}
 
 							if (in_list(fields, k) && data[k] && (data.price_or_product_discount === 'Price' || k === 'pricing_rules')) {
 								frappe.model.set_value(d.doctype, d.name, k, data[k]);
@@ -1935,7 +1937,7 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 		});
 	}
 
-	remove_pricing_rule(item, removed_pricing_rule) {
+	remove_pricing_rule(item, removed_pricing_rule, row_name) {
 		let me = this;
 		const fields = ["discount_percentage",
 			"discount_amount", "margin_rate_or_amount", "rate_with_margin"];
@@ -1973,6 +1975,13 @@ erpnext.TransactionController = class TransactionController extends erpnext.taxe
 			});
 
 			me.trigger_price_list_rate();
+		}
+		else if(!item.is_free_item && row_name){
+			me.frm.doc.items.forEach(d => {
+				if (d.name != row_name) return;
+
+				Object.assign(d, item);
+			});
 		}
 	}
 
