@@ -1564,6 +1564,7 @@ def repost_required_for_queue(doc: StockController) -> bool:
 	return False
 
 
+@frappe.whitelist()
 def check_item_quality_inspection(doctype, items):
 	if isinstance(items, str):
 		items = json.loads(items)
