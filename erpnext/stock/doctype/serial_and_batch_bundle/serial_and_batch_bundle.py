@@ -1937,7 +1937,7 @@ def get_available_batches(kwargs):
 	elif kwargs.based_on == "Expiry":
 		query = query.orderby(batch_table.expiry_date)
 	else:
-		query = query.orderby(batch_table.creation)
+		query = query.orderby(batch_table.manufacturing_date)
 
 	if kwargs.get("ignore_voucher_nos"):
 		query = query.where(stock_ledger_entry.voucher_no.notin(kwargs.get("ignore_voucher_nos")))
