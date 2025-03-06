@@ -1743,8 +1743,11 @@ def get_outstanding_reference_documents(args, validate=False):
 			company_currency,
 			filters=args,
 		)
-
-	data = negative_outstanding_invoices + outstanding_invoices + orders_to_be_billed
+		
+	if args.get("party_type") == "Customer":
+		data = outstanding_invoices + orders_to_be_billed
+	else:
+		data = negative_outstanding_invoices + outstanding_invoices + orders_to_be_billed
 
 	if not data:
 		if args.get("get_outstanding_invoices") and args.get("get_orders_to_be_billed"):
