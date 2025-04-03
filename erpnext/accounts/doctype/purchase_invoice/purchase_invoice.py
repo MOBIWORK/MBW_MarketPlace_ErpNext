@@ -969,7 +969,6 @@ class PurchaseInvoice(BuyingController):
 
 		for item in self.get("items"):
 			if flt(item.base_net_amount):
-				account_currency = get_account_currency(item.expense_account)
 				if item.item_code:
 					frappe.get_cached_value("Item", item.item_code, "asset_category")
 
@@ -978,6 +977,7 @@ class PurchaseInvoice(BuyingController):
 					and self.auto_accounting_for_stock
 					and (item.item_code in stock_items or item.is_fixed_asset)
 				):
+					account_currency = get_account_currency(item.expense_account)
 					# warehouse account
 					warehouse_debit_amount = self.make_stock_adjustment_entry(
 						gl_entries, item, voucher_wise_stock_value, account_currency
@@ -1112,6 +1112,7 @@ class PurchaseInvoice(BuyingController):
 						else item.deferred_expense_account
 					)
 
+					account_currency = get_account_currency(expense_account)
 					amount, base_amount = self.get_amount_and_base_amount(item, None)
 
 					if provisional_accounting_for_non_stock_items:
@@ -1317,7 +1318,7 @@ class PurchaseInvoice(BuyingController):
 						"account": cost_of_goods_sold_account,
 						"against": item.expense_account,
 						"debit": stock_adjustment_amt,
-						"debit_in_transaction_currency": item.net_amount,
+						"debit_in_transaction_currency": stock_adjustment_amt / self.conversion_rate,
 						"remarks": self.get("remarks") or _("Stock Adjustment"),
 						"cost_center": item.cost_center,
 						"project": item.project or self.project,
@@ -1328,6 +1329,38 @@ class PurchaseInvoice(BuyingController):
 			)
 
 			warehouse_debit_amount = stock_amount
+
+		elif self.is_return and self.update_stock and self.is_internal_supplier and warehouse_debit_amount:
+			net_rate = item.base_net_amount
+			if item.sales_incoming_rate:  # for internal transfer
+				net_rate = item.qty * item.sales_incoming_rate
+
+			stock_amount = (
+				net_rate
+				+ item.item_tax_amount
+				+ flt(item.landed_cost_voucher_amount)
+				+ flt(item.get("amount_difference_with_purchase_invoice"))
+			)
+
+			if flt(stock_amount, net_amt_precision) != flt(warehouse_debit_amount, net_amt_precision):
+				cost_of_goods_sold_account = self.get_company_default("default_expense_account")
+				stock_adjustment_amt = stock_amount - warehouse_debit_amount
+
+				gl_entries.append(
+					self.get_gl_dict(
+						{
+							"account": cost_of_goods_sold_account,
+							"against": item.expense_account,
+							"debit": stock_adjustment_amt,
+							"debit_in_transaction_currency": stock_adjustment_amt / self.conversion_rate,
+							"remarks": self.get("remarks") or _("Stock Adjustment"),
+							"cost_center": item.cost_center,
+							"project": item.project or self.project,
+						},
+						account_currency,
+						item=item,
+					)
+				)
 
 		return warehouse_debit_amount
 

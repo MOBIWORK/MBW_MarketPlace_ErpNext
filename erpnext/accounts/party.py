@@ -279,9 +279,7 @@ def get_regional_address_details(party_details, doctype, company):
 	pass
 
 
-def set_contact_details(party_details, party, party_type):
-	party_details.contact_person = get_default_contact(party_type, party.name)
-
+def complete_contact_details(party_details):
 	if not party_details.contact_person:
 		party_details.update(
 			{
@@ -308,6 +306,11 @@ def set_contact_details(party_details, party, party_type):
 		contact_details = frappe.db.get_value("Contact", party_details.contact_person, fields, as_dict=True)
 
 		party_details.update(contact_details)
+
+
+def set_contact_details(party_details, party, party_type):
+	party_details.contact_person = get_default_contact(party_type, party.name)
+	complete_contact_details(party_details)
 
 
 def set_other_values(party_details, party, party_type):
@@ -572,12 +575,13 @@ def validate_party_accounts(doc):
 
 
 @frappe.whitelist()
-def get_due_date(posting_date, party_type, party, company=None, bill_date=None):
+def get_due_date(posting_date, party_type, party, company=None, bill_date=None, template_name=None):
 	"""Get due date from `Payment Terms Template`"""
 	due_date = None
 	if (bill_date or posting_date) and party:
 		due_date = bill_date or posting_date
-		template_name = get_payment_terms_template(party, party_type, company)
+		if not template_name:
+			template_name = get_payment_terms_template(party, party_type, company)
 
 		if template_name:
 			due_date = get_due_date_from_template(template_name, posting_date, bill_date).strftime("%Y-%m-%d")
