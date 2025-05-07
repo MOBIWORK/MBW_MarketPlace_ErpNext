@@ -751,10 +751,10 @@ class SalesInvoice(SellingController):
 		self.paid_amount = paid_amount
 		self.base_paid_amount = base_paid_amount
 
+	@frappe.whitelist()
 	def set_account_for_mode_of_payment(self):
 		for payment in self.payments:
-			if not payment.account:
-				payment.account = get_bank_cash_account(payment.mode_of_payment, self.company).get("account")
+			payment.account = get_bank_cash_account(payment.mode_of_payment, self.company).get("account")
 
 	def validate_time_sheets_are_submitted(self):
 		for data in self.timesheets:
@@ -1348,7 +1348,7 @@ class SalesInvoice(SellingController):
 		)
 
 		for item in self.get("items"):
-			if flt(item.base_net_amount, item.precision("base_net_amount")):
+			if flt(item.base_net_amount, item.precision("base_net_amount")) or item.is_fixed_asset:
 				# Do not book income for transfer within same company
 				if self.is_internal_transfer():
 					continue
@@ -2298,7 +2298,10 @@ def make_inter_company_transaction(doctype, source_name, target_doc=None):
 			# Invert Addresses
 			update_address(target_doc, "supplier_address", "address_display", source_doc.company_address)
 			update_address(
-				target_doc, "shipping_address", "shipping_address_display", source_doc.customer_address
+				target_doc, "dispatch_address", "dispatch_address_display", source_doc.dispatch_address_name
+			)
+			update_address(
+				target_doc, "shipping_address", "shipping_address_display", source_doc.shipping_address_name
 			)
 			update_address(
 				target_doc, "billing_address", "billing_address_display", source_doc.customer_address
@@ -2720,9 +2723,11 @@ def create_dunning(source_name, target_doc=None, ignore_permissions=False):
 				target.closing_text = letter_text.get("closing_text")
 				target.language = letter_text.get("language")
 
-		# update outstanding
+		# update outstanding from doc
 		if source.payment_schedule and len(source.payment_schedule) == 1:
-			target.overdue_payments[0].outstanding = source.get("outstanding_amount")
+			for row in target.overdue_payments:
+				if row.payment_schedule == source.payment_schedule[0].name:
+					row.outstanding = source.get("outstanding_amount")
 
 		target.validate()
 

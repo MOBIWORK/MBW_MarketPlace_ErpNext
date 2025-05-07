@@ -38,7 +38,11 @@ from erpnext.accounts.general_ledger import (
 	make_reverse_gl_entries,
 	process_gl_map,
 )
-from erpnext.accounts.party import complete_contact_details, get_party_account, set_contact_details
+from erpnext.accounts.party import (
+	complete_contact_details,
+	get_default_contact,
+	get_party_account,
+)
 from erpnext.accounts.utils import (
 	cancel_exchange_gain_loss_journal,
 	get_account_currency,
@@ -441,12 +445,12 @@ class PaymentEntry(AccountsController):
 				self.party_name = frappe.db.get_value(self.party_type, self.party, "name")
 
 		if self.party:
-			if not self.contact_person:
-				set_contact_details(
-					self, party=frappe._dict({"name": self.party}), party_type=self.party_type
-				)
-			else:
-				complete_contact_details(self)
+			if self.party_type == "Employee":
+				self.contact_person = None
+			elif not self.contact_person:
+				self.contact_person = get_default_contact(self.party_type, self.party)
+
+			complete_contact_details(self)
 			if not self.party_balance:
 				self.party_balance = get_balance_on(
 					party_type=self.party_type, party=self.party, date=self.posting_date, company=self.company
@@ -457,15 +461,25 @@ class PaymentEntry(AccountsController):
 				self.set(self.party_account_field, party_account)
 				self.party_account = party_account
 
-		if self.paid_from and not (self.paid_from_account_currency or self.paid_from_account_balance):
+		if self.paid_from and (
+			not self.paid_from_account_currency
+			or not self.paid_from_account_balance
+			or not self.paid_from_account_type
+		):
 			acc = get_account_details(self.paid_from, self.posting_date, self.cost_center)
 			self.paid_from_account_currency = acc.account_currency
 			self.paid_from_account_balance = acc.account_balance
+			self.paid_from_account_type = acc.account_type
 
-		if self.paid_to and not (self.paid_to_account_currency or self.paid_to_account_balance):
+		if self.paid_to and (
+			not self.paid_to_account_currency
+			or not self.paid_to_account_balance
+			or not self.paid_to_account_type
+		):
 			acc = get_account_details(self.paid_to, self.posting_date, self.cost_center)
 			self.paid_to_account_currency = acc.account_currency
 			self.paid_to_account_balance = acc.account_balance
+			self.paid_to_account_type = acc.account_type
 
 		self.party_account_currency = (
 			self.paid_from_account_currency
@@ -1980,7 +1994,7 @@ class PaymentEntry(AccountsController):
 
 			# Re allocate amount to those references which have PR set (Higher priority)
 			for ref in self.references:
-				if not ref.payment_request:
+				if not (ref.reference_doctype and ref.reference_name and ref.payment_request):
 					continue
 
 				# fetch outstanding_amount of `Reference` (Payment Term) and `Payment Request` to allocate new amount
@@ -2031,7 +2045,7 @@ class PaymentEntry(AccountsController):
 					)
 			# Re allocate amount to those references which have no PR (Lower priority)
 			for ref in self.references:
-				if ref.payment_request:
+				if ref.payment_request or not (ref.reference_doctype and ref.reference_name):
 					continue
 
 				key = (ref.reference_doctype, ref.reference_name, ref.get("payment_term"))
@@ -2927,6 +2941,8 @@ def get_payment_entry(
 		party_account_currency if payment_type == "Receive" else bank.account_currency
 	)
 	pe.paid_to_account_currency = party_account_currency if payment_type == "Pay" else bank.account_currency
+	pe.paid_from_account_type = frappe.db.get_value("Account", pe.paid_from, "account_type")
+	pe.paid_to_account_type = frappe.db.get_value("Account", pe.paid_to, "account_type")
 	pe.paid_amount = paid_amount
 	pe.received_amount = received_amount
 	pe.letter_head = doc.get("letter_head")
@@ -3286,26 +3302,25 @@ def set_paid_amount_and_received_amount(
 	if party_account_currency == bank.account_currency:
 		paid_amount = received_amount = abs(outstanding_amount)
 	else:
-		company_currency = frappe.get_cached_value("Company", doc.get("company"), "default_currency")
-		if payment_type == "Receive":
-			paid_amount = abs(outstanding_amount)
-			if bank_amount:
-				received_amount = bank_amount
-			else:
-				if bank and company_currency != bank.account_currency:
-					received_amount = paid_amount / doc.get("conversion_rate", 1)
-				else:
-					received_amount = paid_amount * doc.get("conversion_rate", 1)
+		# settings if it is for receive
+		paid_amount = abs(outstanding_amount)
+		if bank_amount:
+			received_amount = bank_amount
 		else:
-			received_amount = abs(outstanding_amount)
-			if bank_amount:
-				paid_amount = bank_amount
+			company_currency = frappe.get_cached_value("Company", doc.get("company"), "default_currency")
+			if bank and company_currency != bank.account_currency:
+				# doc currency can be different from bank currency
+				posting_date = doc.get("posting_date") or doc.get("transaction_date")
+				conversion_rate = get_exchange_rate(
+					bank.account_currency, party_account_currency, posting_date
+				)
+				received_amount = paid_amount / conversion_rate
 			else:
-				if bank and company_currency != bank.account_currency:
-					paid_amount = received_amount / doc.get("conversion_rate", 1)
-				else:
-					# if party account currency and bank currency is different then populate paid amount as well
-					paid_amount = received_amount * doc.get("conversion_rate", 1)
+				received_amount = paid_amount * doc.get("conversion_rate", 1)
+
+		# if payment type is pay, then paid amount and received amount are swapped
+		if payment_type == "Pay":
+			paid_amount, received_amount = received_amount, paid_amount
 
 	return paid_amount, received_amount
 
