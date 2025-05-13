@@ -256,7 +256,8 @@ frappe.ui.form.on("Pick List", {
 					total_qty:null,
 					transaction_date: null,
 					da_pick_hang: null,
-					xac_nhan_giao_hang: null
+					xac_nhan_giao_hang: null,
+					chung_tu_hai_quan_kh: null
 				},
 				size: "extra-large",
 				date_field: "transaction_date",
