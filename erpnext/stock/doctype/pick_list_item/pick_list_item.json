@@ -58,7 +58,7 @@
    "in_list_view": 1,
    "label": "Warehouse",
    "options": "Warehouse",
-   "read_only": 1
+   "read_only": 0
   },
   {
    "fetch_from": "item_code.item_name",
