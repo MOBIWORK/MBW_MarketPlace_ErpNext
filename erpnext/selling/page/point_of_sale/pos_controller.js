@@ -421,6 +421,7 @@ erpnext.PointOfSale.Controller = class {
 	init_payments() {
 		this.payment = new erpnext.PointOfSale.Payment({
 			wrapper: this.$components_wrapper,
+			settings: this.settings,
 			events: {
 				get_frm: () => this.frm || {},
 
@@ -502,6 +503,7 @@ erpnext.PointOfSale.Controller = class {
 						() => frappe.dom.freeze(),
 						() => this.make_new_invoice(),
 						() => this.item_selector.toggle_component(true),
+						() => this.cart.enable_customer_selection(),
 						() => frappe.dom.unfreeze(),
 					]);
 				},
