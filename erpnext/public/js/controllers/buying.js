@@ -159,8 +159,9 @@ erpnext.buying = {
 				});
 			}
 
-			company(){
-				if(!frappe.meta.has_field(this.frm.doc.doctype, "billing_address")) return;
+			company() {
+				super.company();
+				if (!frappe.meta.has_field(this.frm.doc.doctype, "billing_address")) return;
 
 				frappe.call({
 					method: "erpnext.setup.doctype.company.company.get_billing_shipping_address",

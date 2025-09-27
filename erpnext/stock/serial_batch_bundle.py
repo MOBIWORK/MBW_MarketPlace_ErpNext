@@ -185,7 +185,21 @@ class SerialBatchBundle:
 			}
 
 			if self.sle.actual_qty < 0 and self.is_material_transfer():
-				values_to_update["valuation_rate"] = flt(sn_doc.avg_rate)
+				basic_rate = flt(sn_doc.avg_rate)
+				ste_detail = frappe.db.get_value(
+					"Stock Entry Detail",
+					self.sle.voucher_detail_no,
+					["additional_cost", "transfer_qty"],
+					as_dict=True,
+				)
+
+				additional_cost = 0.0
+
+				if ste_detail:
+					additional_cost = flt(ste_detail.additional_cost) / flt(ste_detail.transfer_qty)
+
+				values_to_update["basic_rate"] = basic_rate
+				values_to_update["valuation_rate"] = basic_rate + additional_cost
 
 			if not frappe.db.get_single_value(
 				"Stock Settings", "do_not_update_serial_batch_on_creation_of_auto_bundle"
@@ -292,6 +306,18 @@ class SerialBatchBundle:
 
 			if docstatus == 0:
 				self.submit_serial_and_batch_bundle()
+
+			if (
+				frappe.db.count(
+					"Serial and Batch Entry", {"parent": self.sle.serial_and_batch_bundle, "docstatus": 0}
+				)
+				> 0
+			):
+				frappe.throw(
+					_("Serial and Batch Bundle {0} is not submitted").format(
+						bold(self.sle.serial_and_batch_bundle)
+					)
+				)
 
 		if self.item_details.has_serial_no == 1:
 			self.set_warehouse_and_status_in_serial_nos()
@@ -660,6 +686,7 @@ class BatchNoValuation(DeprecatedBatchNoValuation):
 		for key, value in kwargs.items():
 			setattr(self, key, value)
 
+		self.stock_queue = []
 		self.batch_nos = self.get_batch_nos()
 		self.prepare_batches()
 		self.calculate_avg_rate()
@@ -1311,40 +1338,40 @@ def get_serial_nos_batch(serial_nos):
 	)
 
 
-def update_batch_qty(voucher_type, voucher_no, via_landed_cost_voucher=False):
-	from erpnext.stock.doctype.batch.batch import get_available_batches
-
-	batches = get_distinct_batches(voucher_type, voucher_no)
+def update_batch_qty(voucher_type, voucher_no, docstatus, via_landed_cost_voucher=False):
+	batches = get_batchwise_qty(voucher_type, voucher_no)
 	if not batches:
 		return
 
 	precision = frappe.get_precision("Batch", "batch_qty")
-	batch_data = get_available_batches(
-		frappe._dict({"batch_no": batches, "consider_negative_batches": 1, "based_on_warehouse": True})
-	)
-	batchwise_qty = defaultdict(float)
+	for batch, qty in batches.items():
+		current_qty = get_batch_current_qty(batch)
+		current_qty += flt(qty, precision) * (-1 if docstatus == 2 else 1)
 
-	for (batch_no, warehouse), qty in batch_data.items():
-		if not via_landed_cost_voucher and flt(qty, precision) < 0:
-			throw_negative_batch_validation(batch_no, warehouse, qty)
+		if not via_landed_cost_voucher and current_qty < 0:
+			throw_negative_batch_validation(batch, current_qty)
 
-		batchwise_qty[batch_no] += qty
-
-	for batch_no in batches:
-		qty = flt(batchwise_qty.get(batch_no, 0), precision)
-		frappe.db.set_value("Batch", batch_no, "batch_qty", qty)
+		frappe.db.set_value("Batch", batch, "batch_qty", current_qty)
 
 
-def throw_negative_batch_validation(batch_no, warehouse, qty):
+def get_batch_current_qty(batch):
+	doctype = frappe.qb.DocType("Batch")
+	query = frappe.qb.from_(doctype).select(doctype.batch_qty).where(doctype.name == batch).for_update()
+	batch_qty = query.run()
+
+	return flt(batch_qty[0][0]) if batch_qty else 0.0
+
+
+def throw_negative_batch_validation(batch_no, qty):
 	frappe.throw(
-		_("The Batch {0} has negative quantity {1} in warehouse {2}. Please correct the quantity.").format(
-			bold(batch_no), bold(qty), bold(warehouse)
+		_("The Batch {0} has negative quantity {1}. Please correct the quantity.").format(
+			bold(batch_no), bold(qty)
 		),
 		title=_("Negative Batch Quantity"),
 	)
 
 
-def get_distinct_batches(voucher_type, voucher_no):
+def get_batchwise_qty(voucher_type, voucher_no):
 	bundles = frappe.get_all(
 		"Serial and Batch Bundle",
 		filters={"voucher_no": voucher_no, "voucher_type": voucher_type},
@@ -1353,9 +1380,15 @@ def get_distinct_batches(voucher_type, voucher_no):
 	if not bundles:
 		return
 
-	return frappe.get_all(
+	batches = frappe.get_all(
 		"Serial and Batch Entry",
 		filters={"parent": ("in", bundles), "batch_no": ("is", "set")},
+		fields=["batch_no", "SUM(qty) as qty"],
 		group_by="batch_no",
-		pluck="batch_no",
+		as_list=1,
 	)
+
+	if not batches:
+		return frappe._dict({})
+
+	return frappe._dict(batches)

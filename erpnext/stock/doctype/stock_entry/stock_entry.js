@@ -962,6 +962,7 @@ frappe.ui.form.on("Stock Entry Detail", {
 			});
 		}
 
+		frm.events.set_basic_rate(frm, cdt, cdn);
 		validate_sample_quantity(frm, cdt, cdn);
 	},
 
@@ -1002,6 +1003,13 @@ frappe.ui.form.on("Landed Cost Taxes and Charges", {
 erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockController {
 	setup() {
 		var me = this;
+
+		this.barcode_scanner = new erpnext.utils.BarcodeScanner({
+			frm: this.frm,
+			warehouse_field: (doc) => {
+				return doc.purpose === "Material Receipt" ? "t_warehouse" : "s_warehouse";
+			},
+		});
 
 		this.setup_posting_date_time_check();
 
@@ -1130,8 +1138,7 @@ erpnext.stock.StockEntry = class StockEntry extends erpnext.stock.StockControlle
 
 	scan_barcode() {
 		frappe.flags.dialog_set = false;
-		const barcode_scanner = new erpnext.utils.BarcodeScanner({ frm: this.frm });
-		barcode_scanner.process_scan();
+		this.barcode_scanner.process_scan();
 	}
 
 	on_submit() {

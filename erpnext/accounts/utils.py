@@ -27,6 +27,7 @@ from frappe.utils import (
 	now,
 	nowdate,
 )
+from frappe.utils.caching import site_cache
 from pypika import Order
 from pypika.functions import Coalesce
 from pypika.terms import ExistsCriterion
@@ -1130,6 +1131,29 @@ def get_currency_precision():
 	return precision
 
 
+def get_fraction_units(currency: str) -> int:
+	"""Returns the number of fraction units for a currency."""
+	fraction_units = frappe.db.get_value("Currency", currency, "fraction_units")
+
+	if fraction_units is None:
+		fraction_units = 100
+
+	return fraction_units
+
+
+@site_cache()
+def get_zero_cutoff(currency: str) -> float:
+	"""Returns the zero cutoff for a currency.
+
+	For example, if the Fraction Units for a currency are set to 100, then the zero cutoff is 0.005.
+	We don't want to display values less than the zero cutoff.
+	This value was chosen for compatibility with the previous hard-coded value of 0.005.
+	"""
+	fraction_units = get_fraction_units(currency)
+
+	return 0.5 / (fraction_units or 1)
+
+
 def get_held_invoices(party_type, party):
 	"""
 	Returns a list of names Purchase Invoices for the given party that are on hold
@@ -1743,40 +1767,38 @@ def create_err_and_its_journals(companies: list | None = None) -> None:
 					jv and frappe.get_doc("Journal Entry", jv).submit()
 
 
+def _auto_create_exchange_rate_revaluation_for(frequency: str) -> None:
+	"""
+	Internal helper to avoid code duplication and typos.
+	Fetches companies by frequency and triggers ERR.
+	"""
+	companies = frappe.db.get_all(
+		"Company",
+		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": frequency},
+		fields=["name", "submit_err_jv"],
+	)
+	create_err_and_its_journals(companies)
+
+
 def auto_create_exchange_rate_revaluation_daily() -> None:
 	"""
 	Executed by background job
 	"""
-	companies = frappe.db.get_all(
-		"Company",
-		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Daily"},
-		fields=["name", "submit_err_jv"],
-	)
-	create_err_and_its_journals(companies)
+	_auto_create_exchange_rate_revaluation_for("Daily")
 
 
 def auto_create_exchange_rate_revaluation_weekly() -> None:
 	"""
 	Executed by background job
 	"""
-	companies = frappe.db.get_all(
-		"Company",
-		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Weekly"},
-		fields=["name", "submit_err_jv"],
-	)
-	create_err_and_its_journals(companies)
+	_auto_create_exchange_rate_revaluation_for("Weekly")
 
 
 def auto_create_exchange_rate_revaluation_monthly() -> None:
 	"""
 	Executed by background job
 	"""
-	companies = frappe.db.get_all(
-		"Company",
-		filters={"auto_exchange_rate_revaluation": 1, "auto_err_frequency": "Montly"},
-		fields=["name", "submit_err_jv"],
-	)
-	create_err_and_its_journals(companies)
+	_auto_create_exchange_rate_revaluation_for("Monthly")
 
 
 def get_payment_ledger_entries(gl_entries, cancel=0):
@@ -1897,6 +1919,9 @@ def create_payment_ledger_entry(
 
 			if cancel:
 				delink_original_entry(ple, partial_cancel=partial_cancel)
+				if is_immutable_ledger_enabled():
+					ple.delinked = 0
+					ple.posting_date = frappe.form_dict.get("posting_date") or getdate()
 
 			ple.flags.ignore_permissions = 1
 			ple.flags.adv_adj = adv_adj
@@ -1906,6 +1931,8 @@ def create_payment_ledger_entry(
 
 
 def update_voucher_outstanding(voucher_type, voucher_no, account, party_type, party):
+	from erpnext.accounts.doctype.dunning.dunning import update_linked_dunnings
+
 	if not voucher_type or not voucher_no:
 		return
 
@@ -1938,6 +1965,7 @@ def update_voucher_outstanding(voucher_type, voucher_no, account, party_type, pa
 	):
 		outstanding = voucher_outstanding[0]
 		ref_doc = frappe.get_doc(voucher_type, voucher_no)
+		previous_outstanding_amount = ref_doc.outstanding_amount
 		outstanding_amount = flt(
 			outstanding["outstanding_in_account_currency"], ref_doc.precision("outstanding_amount")
 		)
@@ -1951,6 +1979,7 @@ def update_voucher_outstanding(voucher_type, voucher_no, account, party_type, pa
 			outstanding_amount,
 		)
 
+		update_linked_dunnings(ref_doc, previous_outstanding_amount)
 		ref_doc.set_status(update=True)
 		ref_doc.notify_update()
 
@@ -1980,7 +2009,6 @@ def delink_original_entry(pl_entry, partial_cancel=False):
 		ple = qb.DocType("Payment Ledger Entry")
 		query = (
 			qb.update(ple)
-			.set(ple.delinked, True)
 			.set(ple.modified, now())
 			.set(ple.modified_by, frappe.session.user)
 			.where(
@@ -1998,6 +2026,9 @@ def delink_original_entry(pl_entry, partial_cancel=False):
 
 		if partial_cancel:
 			query = query.where(ple.voucher_detail_no == pl_entry.voucher_detail_no)
+
+		if not is_immutable_ledger_enabled():
+			query = query.set(ple.delinked, True)
 
 		query.run()
 
@@ -2444,6 +2475,10 @@ def build_qb_match_conditions(doctype, user=None) -> list:
 		for filter in match_filters:
 			for link_option, allowed_values in filter.items():
 				fieldnames = link_fields_map.get(link_option, [])
+				cond = None
+
+				if link_option == doctype:
+					cond = _dt["name"].isin(allowed_values)
 
 				for fieldname in fieldnames:
 					field = _dt[fieldname]
@@ -2452,6 +2487,11 @@ def build_qb_match_conditions(doctype, user=None) -> list:
 					if not apply_strict_user_permissions:
 						cond = (Coalesce(field, "") == "") | cond
 
+				if cond:
 					criterion.append(cond)
 
 	return criterion
+
+
+def is_immutable_ledger_enabled():
+	return frappe.get_single_value("Accounts Settings", "enable_immutable_ledger")

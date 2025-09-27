@@ -2123,7 +2123,21 @@ class StockEntry(StockController):
 					"Work Order", self.work_order, "allow_alternative_item"
 				)
 
-			item.from_warehouse = self.from_warehouse or item.source_warehouse or item.default_warehouse
+			skip_transfer, from_wip_warehouse = (
+				frappe.get_value("Work Order", self.work_order, ["skip_transfer", "from_wip_warehouse"])
+				if self.work_order
+				else [None, None]
+			)
+
+			item.from_warehouse = (
+				frappe.get_value(
+					"Work Order Item",
+					{"parent": self.work_order, "item_code": item.item_code},
+					"source_warehouse",
+				)
+				if skip_transfer and not from_wip_warehouse
+				else self.from_warehouse or item.source_warehouse or item.default_warehouse
+			)
 			if item.item_code in used_alternative_items:
 				alternative_item_data = used_alternative_items.get(item.item_code)
 				item.item_code = alternative_item_data.item_code
