@@ -664,7 +664,16 @@ class ReceivablePayableReport:
 		invoiced = d.base_payment_amount
 		paid_amount = d.base_paid_amount
 
-		if company_currency == d.party_account_currency or self.filters.get("in_party_currency"):
+		in_party_currency = self.filters.get("in_party_currency")
+		# company, billing, and party account currencies are the same
+		if company_currency == d.currency and company_currency == d.party_account_currency:
+			in_party_currency = False
+
+		# When filtered by party currency and the billing currency not matches the party account currency
+		if in_party_currency and d.currency != d.party_account_currency:
+			in_party_currency = False
+
+		if in_party_currency:
 			invoiced = d.payment_amount
 			paid_amount = d.paid_amount
 
@@ -1270,7 +1279,7 @@ class ReceivablePayableReport:
 	def setup_ageing_columns(self):
 		# for charts
 		self.ageing_column_labels = []
-		ranges = [*self.ranges, "Above"]
+		ranges = [*self.ranges, _("Above")]
 
 		prev_range_value = 0
 		for idx, curr_range_value in enumerate(ranges):
