@@ -126,7 +126,9 @@ class DeliveryNote(SellingController):
 		shipping_address_name: DF.Link | None
 		shipping_rule: DF.Link | None
 		source: DF.Link | None
-		status: DF.Literal["", "Draft", "To Bill", "Completed", "Return Issued", "Cancelled", "Closed"]
+		status: DF.Literal[
+			"", "Draft", "To Bill", "Completed", "Return", "Return Issued", "Cancelled", "Closed"
+		]
 		tax_category: DF.Link | None
 		tax_id: DF.Data | None
 		taxes: DF.Table[SalesTaxesandCharges]
@@ -523,7 +525,7 @@ class DeliveryNote(SellingController):
 		reserved_stocks = self.get_reserved_stock_details()
 
 		for row in self.items:
-			if reserved_stocks.get((row.item_code, row.warehouse)) > 0:
+			if flt(reserved_stocks.get((row.item_code, row.warehouse))) > 0:
 				args = frappe._dict(
 					{
 						"item_code": row.item_code,
