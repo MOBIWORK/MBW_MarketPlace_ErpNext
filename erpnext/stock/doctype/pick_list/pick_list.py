@@ -522,6 +522,7 @@ class PickList(Document):
 			return picked_items
 
 		items_data = self._get_pick_list_items(items)
+		print('========================= item_data: ', items_data, flush=True)
 
 		for item_data in items_data:
 			key = (item_data.warehouse, item_data.batch_no) if item_data.batch_no else item_data.warehouse
@@ -576,21 +577,21 @@ class PickList(Document):
 				pi_item.batch_no,
 				pi_item.serial_and_batch_bundle,
 				pi_item.serial_no,
-				(Case().when(pi_item.picked_qty > 0, pi_item.picked_qty).else_(pi_item.stock_qty)).as_(
-					"picked_qty"
-				),
+				pi_item.picked_qty.as_("picked_qty"),
 			)
 			.where(
 				(pi_item.item_code.isin([x.item_code for x in items]))
-				& ((pi_item.picked_qty > 0) | (pi_item.stock_qty > 0))
+				& (pi_item.picked_qty > 0)  # only count actually picked qty
+				& (pi_item.docstatus == 1)  # only submitted pick lists
 				& (pi.status != "Completed")
 				& (pi.status != "Cancelled")
-				& (pi_item.docstatus != 2)
 			)
 		)
 
 		if self.name:
 			query = query.where(pi_item.parent != self.name)
+
+		query = query.for_update()
 
 		return query.run(as_dict=True)
 
