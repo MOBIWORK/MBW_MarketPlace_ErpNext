@@ -736,12 +736,30 @@ class calculate_taxes_and_totals:
 			net_total = 0
 			expected_net_total = 0
 
-			if total_for_discount_amount:
+			# Check discount allocation type: Quantity or Amount
+			is_pi_or_pr = self.doc.doctype in ["Purchase Invoice", "Purchase Receipt"]
+			discount_allocation_type = self.doc.get("discount_allocation_type", "Amount")
+			total_qty = 0
+			
+			if is_pi_or_pr and discount_allocation_type == "Quantity":
+				# Calculate total quantity for discount allocation
+				total_qty = sum(flt(item.qty) for item in self._items if item.qty)
+
+			if (is_pi_or_pr and discount_allocation_type == "Quantity" and total_qty) or total_for_discount_amount:
 				# calculate item amount after Discount Amount
 				for item in self._items:
-					distributed_amount = (
-						flt(self.doc.discount_amount) * item.net_amount / total_for_discount_amount
-					)
+					if is_pi_or_pr and discount_allocation_type == "Quantity" and total_qty:
+						# Allocate discount based on quantity (only for PI and PR)
+						distributed_amount = (
+							flt(self.doc.discount_amount) * flt(item.qty) / total_qty
+						)
+					elif total_for_discount_amount:
+						# Allocate discount based on net amount (default)
+						distributed_amount = (
+							flt(self.doc.discount_amount) * item.net_amount / total_for_discount_amount
+						)
+					else:
+						distributed_amount = 0
 
 					adjusted_net_amount = item.net_amount - distributed_amount
 					expected_net_total += adjusted_net_amount

@@ -12,7 +12,12 @@
   "image",
   "description",
   "defaults",
-  "brand_defaults"
+  "brand_defaults",
+  "lft",
+  "rgt",
+  "is_group",
+  "old_parent",
+  "parent_brand"
  ],
  "fields": [
   {
@@ -50,17 +55,53 @@
    "fieldtype": "Attach Image",
    "hidden": 1,
    "label": "Image"
+  },
+  {
+   "fieldname": "lft",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Left",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "rgt",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Right",
+   "no_copy": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "is_group",
+   "fieldtype": "Check",
+   "label": "Is Group"
+  },
+  {
+   "fieldname": "old_parent",
+   "fieldtype": "Link",
+   "label": "Old Parent",
+   "options": "Brand"
+  },
+  {
+   "fieldname": "parent_brand",
+   "fieldtype": "Link",
+   "ignore_user_permissions": 1,
+   "label": "Parent Brand",
+   "options": "Brand"
   }
  ],
  "icon": "fa fa-certificate",
  "idx": 1,
  "image_field": "image",
+ "is_tree": 1,
  "links": [],
- "modified": "2024-08-20 14:10:21.377962",
+ "modified": "2025-12-15 16:51:21.458304",
  "modified_by": "Administrator",
  "module": "Setup",
  "name": "Brand",
  "naming_rule": "By fieldname",
+ "nsm_parent_field": "parent_brand",
  "owner": "Administrator",
  "permissions": [
   {
@@ -106,7 +147,10 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
  "show_name_in_global_search": 1,
  "sort_field": "modified",
- "sort_order": "ASC"
+ "sort_order": "ASC",
+ "states": []
 }

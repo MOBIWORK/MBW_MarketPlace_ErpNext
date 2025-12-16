@@ -15,14 +15,18 @@ class Brand(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-
 		from erpnext.stock.doctype.item_default.item_default import ItemDefault
+		from frappe.types import DF
 
 		brand: DF.Data
 		brand_defaults: DF.Table[ItemDefault]
 		description: DF.Text | None
 		image: DF.AttachImage | None
+		is_group: DF.Check
+		lft: DF.Int
+		old_parent: DF.Link | None
+		parent_brand: DF.Link | None
+		rgt: DF.Int
 	# end: auto-generated types
 
 	pass
