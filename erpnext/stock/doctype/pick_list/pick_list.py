@@ -522,7 +522,6 @@ class PickList(Document):
 			return picked_items
 
 		items_data = self._get_pick_list_items(items)
-		print('========================= item_data: ', items_data, flush=True)
 
 		for item_data in items_data:
 			key = (item_data.warehouse, item_data.batch_no) if item_data.batch_no else item_data.warehouse
@@ -577,16 +576,32 @@ class PickList(Document):
 				pi_item.batch_no,
 				pi_item.serial_and_batch_bundle,
 				pi_item.serial_no,
-				pi_item.picked_qty.as_("picked_qty"),
+				(
+					Case()
+					.when((pi_item.picked_qty > 0) & (pi_item.docstatus == 1), pi_item.picked_qty)
+					.else_(pi_item.stock_qty)
+				).as_("picked_qty"),
 			)
 			.where(
 				(pi_item.item_code.isin([x.item_code for x in items]))
-				& (pi_item.picked_qty > 0)  # only count actually picked qty
-				& (pi_item.docstatus == 1)  # only submitted pick lists
+				& ((pi_item.picked_qty > 0) | (pi_item.stock_qty > 0))
 				& (pi.status != "Completed")
 				& (pi.status != "Cancelled")
+				& (pi_item.docstatus != 2)
 			)
 		)
+
+		# Lọc theo sales_order_item nếu mặt hàng có sales_order_item
+		# Điều này đảm bảo chúng ta chỉ kiểm tra các mặt hàng đã được chọn cho cùng một mặt hàng trong Đơn đặt hàng bán hàng
+		# Điều này ngăn ngừa trường hợp chọn nhầm khi cùng một mặt hàng được chọn cho các Đơn đặt hàng bán hàng khác nhau
+		sales_order_items = [x.sales_order_item for x in items if hasattr(x, 'sales_order_item') and x.sales_order_item]
+		if sales_order_items:
+			query = query.where(pi_item.sales_order_item.isin(sales_order_items))
+			
+		# Tương tự, lọc theo material_request_item nếu các mục có material_request_item
+		material_request_items = [x.material_request_item for x in items if hasattr(x, 'material_request_item') and x.material_request_item]
+		if material_request_items and not sales_order_items:
+			query = query.where(pi_item.material_request_item.isin(material_request_items))
 
 		if self.name:
 			query = query.where(pi_item.parent != self.name)
