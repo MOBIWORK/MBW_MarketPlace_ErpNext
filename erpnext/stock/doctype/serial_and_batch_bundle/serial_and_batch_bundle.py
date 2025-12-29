@@ -257,9 +257,8 @@ class SerialandBatchBundle(Document):
 				if self.docstatus == 1:
 					available_qty += flt(d.qty, d.precision("qty"))
 
-				# TEMPORARY DISABLED - Allow negative stock for emergency Pick List submission
-				# if not allow_negative_stock:
-				# 	self.validate_negative_batch(d.batch_no, available_qty)
+				if not allow_negative_stock:
+					self.validate_negative_batch(d.batch_no, available_qty)
 
 			d.stock_value_difference = flt(d.qty) * flt(d.incoming_rate)
 
