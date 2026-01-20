@@ -88,8 +88,6 @@ class PartyLedgerSummaryReport:
 				}
 			)
 
-		credit_or_debit_note = "Credit Note" if self.filters.party_type == "Customer" else "Debit Note"
-
 		columns += [
 			{
 				"label": _("Opening Balance"),
@@ -112,14 +110,36 @@ class PartyLedgerSummaryReport:
 				"options": "currency",
 				"width": 120,
 			},
-			{
-				"label": _(credit_or_debit_note),
-				"fieldname": "return_amount",
-				"fieldtype": "Currency",
-				"options": "currency",
-				"width": 120,
-			},
 		]
+
+		if self.filters.party_type == "Customer":
+			# Split Credit Note into: Discount vs Sales Return
+			columns += [
+				{
+					"label": _("Discount (Credit Note)"),
+					"fieldname": "discount_credit_note_amount",
+					"fieldtype": "Currency",
+					"options": "currency",
+					"width": 150,
+				},
+				{
+					"label": _("Sales Return (Credit Note)"),
+					"fieldname": "return_amount",
+					"fieldtype": "Currency",
+					"options": "currency",
+					"width": 150,
+				},
+			]
+		else:
+			columns.append(
+				{
+					"label": _("Debit Note"),
+					"fieldname": "return_amount",
+					"fieldtype": "Currency",
+					"options": "currency",
+					"width": 120,
+				}
+			)
 
 		for account in self.party_adjustment_accounts:
 			columns.append(
@@ -197,6 +217,7 @@ class PartyLedgerSummaryReport:
 						"opening_balance": 0,
 						"invoiced_amount": 0,
 						"paid_amount": 0,
+						"discount_credit_note_amount": 0,
 						"return_amount": 0,
 						"closing_balance": 0,
 						"currency": company_currency,
@@ -219,7 +240,11 @@ class PartyLedgerSummaryReport:
 				if amount > 0:
 					self.party_data[gle.party].invoiced_amount += amount
 				elif gle.voucher_no in self.return_invoices:
-					self.party_data[gle.party].return_amount -= amount
+					# For return invoices (credit note), split into Discount vs Sales Return (Customer only)
+					if self.filters.party_type == "Customer" and gle.voucher_no in self.discount_credit_notes:
+						self.party_data[gle.party].discount_credit_note_amount -= amount
+					else:
+						self.party_data[gle.party].return_amount -= amount
 				else:
 					self.party_data[gle.party].paid_amount -= amount
 
@@ -229,6 +254,7 @@ class PartyLedgerSummaryReport:
 				row.opening_balance
 				or row.invoiced_amount
 				or row.paid_amount
+				or row.discount_credit_note_amount
 				or row.return_amount
 				or row.closing_amount
 			):
@@ -338,17 +364,27 @@ class PartyLedgerSummaryReport:
 
 	def get_return_invoices(self):
 		doctype = "Sales Invoice" if self.filters.party_type == "Customer" else "Purchase Invoice"
-		self.return_invoices = [
-			d.name
-			for d in frappe.get_all(
-				doctype,
-				filters={
-					"is_return": 1,
-					"docstatus": 1,
-					"posting_date": ["between", [self.filters.from_date, self.filters.to_date]],
-				},
-			)
-		]
+		self.return_invoices = set()
+		self.discount_credit_notes = set()
+
+		fields = ["name"]
+		if self.filters.party_type == "Customer":
+			# MBW custom fields
+			fields += ["custom_la_chi_phi_chiet_khau", "custom_la_tra_hang"]
+
+		for d in frappe.get_all(
+			doctype,
+			filters={
+				"is_return": 1,
+				"docstatus": 1,
+				"posting_date": ["between", [self.filters.from_date, self.filters.to_date]],
+			},
+			fields=fields,
+		):
+			self.return_invoices.add(d.name)
+			# classify only for Customer
+			if self.filters.party_type == "Customer" and d.get("custom_la_chi_phi_chiet_khau"):
+				self.discount_credit_notes.add(d.name)
 
 	def get_party_adjustment_amounts(self):
 		conditions = self.prepare_conditions()
