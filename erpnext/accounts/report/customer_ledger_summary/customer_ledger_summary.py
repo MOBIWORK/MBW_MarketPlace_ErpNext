@@ -27,6 +27,7 @@ class PartyLedgerSummaryReport:
 		self.get_additional_columns()
 		self.get_return_invoices()
 		self.get_party_adjustment_amounts()
+		self.get_expected_future_amounts()
 
 		columns = self.get_columns()
 		data = self.get_data()
@@ -161,14 +162,36 @@ class PartyLedgerSummaryReport:
 				"options": "currency",
 				"width": 120,
 			},
+		]
+
+		# MBW custom columns for expected receivables from approved sales orders
+		if self.filters.party_type == "Customer":
+			columns += [
+				{
+					"label": _("Giá trị dự kiến phát sinh"),
+					"fieldname": "expected_future_amount",
+					"fieldtype": "Currency",
+					"options": "currency",
+					"width": 150,
+				},
+				{
+					"label": _("Số dư công nợ dự kiến"),
+					"fieldname": "projected_balance",
+					"fieldtype": "Currency",
+					"options": "currency",
+					"width": 150,
+				},
+			]
+
+		columns.append(
 			{
 				"label": _("Currency"),
 				"fieldname": "currency",
 				"fieldtype": "Link",
 				"options": "Currency",
 				"width": 50,
-			},
-		]
+			}
+		)
 
 		# Hidden columns for handling 'User Permissions'
 		if self.filters.party_type == "Customer":
@@ -220,6 +243,9 @@ class PartyLedgerSummaryReport:
 						"discount_credit_note_amount": 0,
 						"return_amount": 0,
 						"closing_balance": 0,
+						# MBW custom fields
+						"expected_future_amount": 0,
+						"projected_balance": 0,
 						"currency": company_currency,
 					}
 				),
@@ -250,13 +276,20 @@ class PartyLedgerSummaryReport:
 
 		out = []
 		for party, row in self.party_data.items():
+			# MBW: attach expected future amount (from Sales Orders) for customers
+			if self.filters.party_type == "Customer":
+				expected_amount = self.expected_future_amounts.get(party, 0)
+				row.expected_future_amount = expected_amount
+				row.projected_balance = (row.closing_balance or 0) + (expected_amount or 0)
+
 			if (
 				row.opening_balance
 				or row.invoiced_amount
 				or row.paid_amount
 				or row.discount_credit_note_amount
 				or row.return_amount
-				or row.closing_amount
+				or row.closing_balance
+				or row.expected_future_amount
 			):
 				total_party_adjustment = sum(
 					amount for amount in self.party_adjustment_details.get(party, {}).values()
@@ -474,6 +507,38 @@ class PartyLedgerSummaryReport:
 						self.party_adjustment_details.setdefault(party, {})
 						self.party_adjustment_details[party].setdefault(account, 0)
 						self.party_adjustment_details[party][account] += amount
+
+	def get_expected_future_amounts(self):
+		self.expected_future_amounts = frappe._dict({})
+
+		# Only relevant for customers
+		if self.filters.party_type != "Customer":
+			return
+
+		result = frappe.db.sql(
+			"""
+			select
+				customer,
+				sum(ifnull(base_grand_total, 0)) as amount
+			from `tabSales Order`
+			where
+				docstatus = 1
+				and company = %(company)s
+				and transaction_date between %(from_date)s and %(to_date)s
+				and status = %(status)s
+			group by customer
+			""",
+			{
+				"company": self.filters.company,
+				"from_date": self.filters.from_date,
+				"to_date": self.filters.to_date,
+				"status": "To Deliver and Bill",
+			},
+			as_dict=True,
+		)
+
+		for row in result:
+			self.expected_future_amounts[row.customer] = row.amount or 0
 
 
 def execute(filters=None):
