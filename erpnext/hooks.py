@@ -419,8 +419,11 @@ scheduler_events = {
 		"30 * * * *": [
 			"erpnext.accounts.doctype.gl_entry.gl_entry.rename_gle_sle_docs",
 		],
-		# Daily but offset by 45 minutes
-		"45 0 * * *": [
+        # "45 0 * * *": [
+		# 	"erpnext.stock.reorder_item.reorder_item",
+		# ],
+		# 4x daily during business hours (8:00, 12:00, 17:00, 21:00)
+		"0 8,12,17,21 * * *": [
 			"erpnext.stock.reorder_item.reorder_item",
 		],
 	},
