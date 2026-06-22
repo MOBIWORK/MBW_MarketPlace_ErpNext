@@ -262,7 +262,15 @@
 		},
 		"Belgium VAT 12%": {
 			"account_name": "VAT 12%",
-			"tax_rate": 12
+			"tax_rate": 12.00
+		},
+		"Belgium VAT 6%": {
+			"account_name": "VAT 6%",
+			"tax_rate": 6.00
+		},
+		"Belgium VAT 0%": {
+			"account_name": "VAT 0%",
+			"tax_rate": 0.00
 		}
 	},
 
@@ -4115,9 +4123,14 @@
 	},
 
 	"Japan": {
-		"Japan Tax": {
-			"account_name": "CT",
-			"tax_rate": 5.00
+		"Japan Tax 10%": {
+			"account_name": "CT 10%",
+			"tax_rate": 10.00,
+			"default": 1
+		},
+		"Japan Tax 8%": {
+			"account_name": "CT 8%",
+			"tax_rate": 8.00
 		}
 	},
 
@@ -4844,17 +4857,17 @@
 
 	"Switzerland": {
 		"Switzerland normal VAT": {
-			"account_name": "VAT 7.7%",
-			"tax_rate": 7.70,
+			"account_name": "VAT 8.1%",
+			"tax_rate": 8.10,
 			"default": 1
 		},
 		"Switzerland reduced VAT": {
-			"account_name": "VAT 2.5%",
-			"tax_rate": 2.50
+			"account_name": "VAT 2.6%",
+			"tax_rate": 2.60
 		},
 		"Switzerland lodging VAT": {
-			"account_name": "VAT 3.7%",
-			"tax_rate": 3.70
+			"account_name": "VAT 3.8%",
+			"tax_rate": 3.80
 		}
 	},
 

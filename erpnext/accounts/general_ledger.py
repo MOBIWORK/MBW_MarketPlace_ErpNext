@@ -700,7 +700,12 @@ def make_reverse_gl_entries(
 		check_freezing_date(gl_entries[0]["posting_date"], adv_adj)
 
 		is_opening = any(d.get("is_opening") == "Yes" for d in gl_entries)
-		validate_against_pcv(is_opening, gl_entries[0]["posting_date"], gl_entries[0]["company"])
+
+		# For reverse entries, use the posting_date parameter if provided and valid
+		# Otherwise fall back to original posting_date
+		validation_date = posting_date if posting_date else gl_entries[0]["posting_date"]
+		validate_against_pcv(is_opening, validation_date, gl_entries[0]["company"])
+
 		if partial_cancel:
 			# Partial cancel is only used by `Advance` in separate account feature.
 			# Only cancel GL entries for unlinked reference using `voucher_detail_no`
@@ -804,12 +809,19 @@ def validate_against_pcv(is_opening, posting_date, company):
 			title=_("Invalid Opening Entry"),
 		)
 
-	last_pcv_date = frappe.db.get_value(
-		"Period Closing Voucher", {"docstatus": 1, "company": company}, "max(period_end_date)"
-	)
+	# Local import so you don't have to touch file-level imports
+	from frappe.query_builder.functions import Max
+
+	pcv = frappe.qb.DocType("Period Closing Voucher")
+
+	last_pcv_date = (
+		frappe.qb.from_(pcv)
+		.select(Max(pcv.period_end_date))
+		.where((pcv.docstatus == 1) & (pcv.company == company))
+	).run(pluck=True)[0]
 
 	if last_pcv_date and getdate(posting_date) <= getdate(last_pcv_date):
-		message = _("Books have been closed till the period ending on {0}").format(formatdate(last_pcv_date))
+		message = _("Books have been closed till the period ending on {0}.").format(formatdate(last_pcv_date))
 		message += "</br >"
 		message += _("You cannot create/amend any accounting entries till this date.")
 		frappe.throw(message, title=_("Period Closed"))

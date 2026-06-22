@@ -308,6 +308,8 @@ class Project(Document):
 		self.gross_margin = flt(self.total_billed_amount) - expense_amount
 		if self.total_billed_amount:
 			self.per_gross_margin = (self.gross_margin / flt(self.total_billed_amount)) * 100
+		else:
+			self.per_gross_margin = 0
 
 	def update_purchase_costing(self):
 		total_purchase_cost = calculate_total_purchase_cost(self.name)
@@ -362,13 +364,18 @@ class Project(Document):
 		)
 
 		for user in self.users:
+			# process only users who haven't received the welcome email yet
 			if user.welcome_email_sent == 0:
-				frappe.sendmail(
-					user.user,
-					subject=_("Project Collaboration Invitation"),
-					content=content,
-				)
-				user.welcome_email_sent = 1
+				# fetch canonical User data (enabled status + latest email)
+				user_info = frappe.db.get_value("User", user.user, ["enabled", "email"], as_dict=True)
+				# send email only if user is enabled and has a valid email
+				if user_info and user_info.enabled and user_info.email:
+					frappe.sendmail(
+						recipients=[user_info.email],
+						subject=_("Project Collaboration Invitation"),
+						content=content,
+					)
+					user.welcome_email_sent = 1
 
 
 def get_timeline_data(doctype: str, name: str) -> dict[int, int]:
@@ -710,7 +717,7 @@ def set_project_status(project, status):
 		frappe.throw(_("Status must be Cancelled or Completed"))
 
 	project = frappe.get_doc("Project", project)
-	frappe.has_permission(doc=project, throw=True)
+	project.check_permission("write")
 
 	for task in frappe.get_all("Task", dict(project=project.name)):
 		frappe.db.set_value("Task", task.name, "status", status)

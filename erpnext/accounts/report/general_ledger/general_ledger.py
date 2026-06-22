@@ -279,7 +279,15 @@ def get_conditions(filters):
 	if filters.get("party"):
 		conditions.append("party in %(party)s")
 
-	if not (
+	if filters.get("disable_opening_balance_calculation"):
+		if not ignore_is_opening:
+			conditions.append("(posting_date >=%(from_date)s or is_opening = 'Yes')")
+		else:
+			conditions.append("posting_date >=%(from_date)s")
+
+	# opening balance calculation is done only if filtered on account/party
+	# so from_date filter is not applied
+	elif not (
 		filters.get("account")
 		or filters.get("party")
 		or filters.get("categorize_by") in ["Categorize by Account", "Categorize by Party"]
@@ -398,7 +406,13 @@ def get_data_with_opening_closing(filters, account_details, accounting_dimension
 	# Opening for filtered account
 	data.append(totals.opening)
 
-	if filters.get("categorize_by") != "Categorize by Voucher (Consolidated)":
+	if not filters.get("categorize_by"):
+		all_entries = []
+		for acc_dict in gle_map.values():
+			all_entries.extend(acc_dict.entries)
+		data += all_entries
+
+	elif filters.get("categorize_by") != "Categorize by Voucher (Consolidated)":
 		for _acc, acc_dict in gle_map.items():
 			# acc
 			if acc_dict.entries:
@@ -528,7 +542,11 @@ def get_accountwise_gle(filters, accounting_dimensions, gl_entries, gle_map, tot
 		group_by_value = gle.get(group_by)
 		gle.voucher_type = gle.voucher_type
 
-		if gle.posting_date < from_date or (cstr(gle.is_opening) == "Yes" and not show_opening_entries):
+		if gle.posting_date < from_date or (
+			cstr(gle.is_opening) == "Yes"
+			and not show_opening_entries
+			and not filters.disable_opening_balance_calculation
+		):
 			if not group_by_voucher_consolidated:
 				update_value_in_dict(gle_map[group_by_value].totals, "opening", gle, True)
 				update_value_in_dict(gle_map[group_by_value].totals, "closing", gle, True)

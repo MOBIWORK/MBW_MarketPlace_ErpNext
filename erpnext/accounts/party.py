@@ -7,18 +7,16 @@ from frappe import _, msgprint, qb, scrub
 from frappe.contacts.doctype.address.address import get_company_address, get_default_address
 from frappe.core.doctype.user_permission.user_permission import get_permitted_documents
 from frappe.model.utils import get_fetch_values
-from frappe.query_builder.functions import Abs, Count, Date, Sum
+from frappe.query_builder.functions import Abs, Date, Sum
 from frappe.utils import (
 	add_days,
 	add_months,
-	add_years,
 	cint,
 	cstr,
 	date_diff,
 	flt,
 	formatdate,
 	get_last_day,
-	get_timestamp,
 	getdate,
 	nowdate,
 )
@@ -49,6 +47,25 @@ SALES_TRANSACTION_TYPES = {
 	"POS Invoice",
 }
 TRANSACTION_TYPES = PURCHASE_TRANSACTION_TYPES | SALES_TRANSACTION_TYPES
+
+# Party-derived fields that must NOT be auto-copied by `get_mapped_doc` when the
+# source and target documents belong to different parties (e.g. Sales Order →
+# Purchase Order or inter-company Sales Invoice → Purchase Invoice).
+CROSS_PARTY_FIELD_NO_MAP = [
+	"tax_category",
+	"tax_id",
+	"tax_withholding_category",
+	"taxes_and_charges",
+	"address_display",
+	"contact_display",
+	"contact_mobile",
+	"contact_email",
+	"contact_person",
+	"shipping_address",
+	"dispatch_address",
+	"payment_terms_template",
+	"language",
+]
 
 
 class DuplicatePartyAccountError(frappe.ValidationError):
@@ -302,19 +319,9 @@ def complete_contact_details(party_details):
 	contact_details = frappe._dict()
 
 	if party_details.party_type == "Employee":
-		contact_details = frappe.db.get_value(
-			"Employee",
-			party_details.party,
-			[
-				"employee_name as contact_display",
-				"prefered_email as contact_email",
-				"cell_number as contact_mobile",
-				"designation as contact_designation",
-				"department as contact_department",
-			],
-			as_dict=True,
-		)
+		from erpnext.setup.doctype.employee.employee import _get_contact_details as get_employee_contact
 
+		contact_details = get_employee_contact(party_details.party)
 		contact_details.update({"contact_person": None, "contact_phone": None})
 	elif party_details.contact_person:
 		contact_details = frappe.db.get_value(
@@ -503,11 +510,6 @@ def get_party_advance_account(party_type, party, company):
 	return account
 
 
-@frappe.whitelist()
-def get_party_bank_account(party_type, party):
-	return frappe.db.get_value("Bank Account", {"party_type": party_type, "party": party, "is_default": 1})
-
-
 def get_party_account_currency(party_type, party, company):
 	def generator():
 		party_account = get_party_account(party_type, party, company)
@@ -542,11 +544,19 @@ def get_party_gle_currency(party_type, party, company):
 
 def get_party_gle_account(party_type, party, company):
 	def generator():
-		existing_gle_account = frappe.db.sql(
-			"""select account from `tabGL Entry`
-			where docstatus=1 and company=%(company)s and party_type=%(party_type)s and party=%(party)s
-			limit 1""",
-			{"company": company, "party_type": party_type, "party": party},
+		gl = qb.DocType("GL Entry")
+		existing_gle_account = (
+			qb.from_(gl)
+			.select(gl.account)
+			.where(
+				(gl.docstatus == 1)
+				& (gl.company == company)
+				& (gl.party_type == party_type)
+				& (gl.party == party)
+				& (gl.is_cancelled == 0)
+			)
+			.limit(1)
+			.run()
 		)
 
 		return existing_gle_account[0][0] if existing_gle_account else None
@@ -681,7 +691,7 @@ def validate_due_date_with_template(posting_date, due_date, bill_date, template_
 	if not default_due_date:
 		return
 
-	if default_due_date != posting_date and getdate(due_date) > getdate(default_due_date):
+	if getdate(default_due_date) != getdate(posting_date) and getdate(due_date) > getdate(default_due_date):
 		if frappe.db.get_single_value("Accounts Settings", "credit_controller") in frappe.get_roles():
 			party_type = "supplier" if doctype == "Purchase Invoice" else "customer"
 
@@ -755,7 +765,7 @@ def set_taxes(
 		args.update({"tax_type": "Purchase"})
 
 	if use_for_shopping_cart:
-		args.update({"use_for_shopping_cart": use_for_shopping_cart})
+		args.update({"use_for_shopping_cart": cint(use_for_shopping_cart)})
 
 	return get_tax_template(posting_date, args)
 

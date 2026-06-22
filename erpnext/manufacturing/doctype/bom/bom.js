@@ -75,6 +75,9 @@ frappe.ui.form.on("BOM", {
 
 	with_operations: function (frm) {
 		frm.set_df_property("fg_based_operating_cost", "hidden", frm.doc.with_operations ? 1 : 0);
+		if (frm.doc.routing && frm.doc.with_operations && !frm.doc.operations.length) {
+			frm.trigger("routing");
+		}
 	},
 
 	fg_based_operating_cost: function (frm) {
@@ -192,6 +195,7 @@ frappe.ui.form.on("BOM", {
 						bom_no: frm.doc.name,
 						item: item,
 						qty: data.qty || 0.0,
+						company: frm.doc.company,
 						project: frm.doc.project,
 						variant_items: variant_items,
 						use_multi_level_bom: use_multi_level_bom,
@@ -263,6 +267,7 @@ frappe.ui.form.on("BOM", {
 				reqd: 1,
 				default: 1,
 				onchange: () => {
+					if (!cur_dialog) return;
 					const { quantity, items: rm } = frm.doc;
 					const variant_items_map = rm.reduce((acc, item) => {
 						acc[item.item_code] = item.qty;
@@ -436,7 +441,7 @@ frappe.ui.form.on("BOM", {
 	},
 
 	routing(frm) {
-		if (frm.doc.routing) {
+		if (frm.doc.routing && frm.doc.with_operations && !frm.doc.operations.length) {
 			frappe.call({
 				doc: frm.doc,
 				method: "get_routing",
@@ -758,6 +763,8 @@ frappe.ui.form.on("BOM Item", "sourced_by_supplier", function (frm, cdt, cdn) {
 	if (d.sourced_by_supplier) {
 		d.rate = 0;
 		refresh_field("rate", d.name, d.parentfield);
+	} else {
+		get_bom_material_detail(frm.doc, cdt, cdn, false);
 	}
 });
 

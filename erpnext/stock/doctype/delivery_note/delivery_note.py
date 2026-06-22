@@ -7,6 +7,7 @@ import json
 import frappe
 from frappe import _
 from frappe.contacts.doctype.address.address import get_company_address
+from frappe.contacts.doctype.contact.contact import get_default_contact
 from frappe.desk.notifications import clear_doctype_notifications
 from frappe.model.mapper import get_mapped_doc
 from frappe.model.utils import get_fetch_values
@@ -14,7 +15,7 @@ from frappe.query_builder import DocType
 from frappe.query_builder.functions import Abs, Sum
 from frappe.utils import cint, flt
 
-from erpnext.accounts.party import get_due_date
+from erpnext.accounts.party import CROSS_PARTY_FIELD_NO_MAP, get_due_date
 from erpnext.controllers.accounts_controller import get_taxes_and_charges, merge_taxes
 from erpnext.controllers.selling_controller import SellingController
 from erpnext.stock.stock_ledger import validate_reserved_stock
@@ -127,7 +128,15 @@ class DeliveryNote(SellingController):
 		shipping_rule: DF.Link | None
 		source: DF.Link | None
 		status: DF.Literal[
-			"", "Draft", "To Bill", "Completed", "Return", "Return Issued", "Cancelled", "Closed"
+			"",
+			"Draft",
+			"To Bill",
+			"Partially Billed",
+			"Completed",
+			"Return",
+			"Return Issued",
+			"Cancelled",
+			"Closed",
 		]
 		tax_category: DF.Link | None
 		tax_id: DF.Data | None
@@ -384,6 +393,9 @@ class DeliveryNote(SellingController):
 		)
 
 	def validate_sales_invoice_references(self):
+		if self.is_return:
+			return
+
 		self._validate_dependent_item_fields(
 			"against_sales_invoice", "si_detail", _("References to Sales Invoices are Incomplete")
 		)
@@ -1161,18 +1173,24 @@ def make_shipment(source_name, target_doc=None):
 		# As we are using session user details in the pickup_contact then pickup_contact_person will be session user
 		target.pickup_contact_person = frappe.session.user
 
-		if source.contact_person:
+		contact_person = source.contact_person or get_default_contact("Customer", source.customer)
+		if contact_person:
 			contact = frappe.db.get_value(
-				"Contact", source.contact_person, ["email_id", "phone", "mobile_no"], as_dict=1
+				"Contact", contact_person, ["email_id", "phone", "mobile_no"], as_dict=1
 			)
-			delivery_contact_display = f"{source.contact_display}"
-			if contact:
+
+			delivery_contact_display = source.contact_display or contact_person or ""
+			if contact and not source.contact_display:
 				if contact.email_id:
 					delivery_contact_display += "<br>" + contact.email_id
 				if contact.phone:
 					delivery_contact_display += "<br>" + contact.phone
 				if contact.mobile_no and not contact.phone:
 					delivery_contact_display += "<br>" + contact.mobile_no
+
+			target.delivery_contact_name = contact_person
+			if contact and contact.email_id and not target.delivery_contact_email:
+				target.delivery_contact_email = contact.email_id
 			target.delivery_contact = delivery_contact_display
 
 		if source.shipping_address_name:
@@ -1387,8 +1405,7 @@ def make_inter_company_transaction(doctype, source_name, target_doc=None):
 			doctype: {
 				"doctype": target_doctype,
 				"postprocess": update_details,
-				"field_no_map": ["taxes_and_charges", "set_warehouse"],
-				"field_map": {"shipping_address_name": "shipping_address"},
+				"field_no_map": [*CROSS_PARTY_FIELD_NO_MAP, "set_warehouse"],
 			},
 			doctype + " Item": {
 				"doctype": target_doctype + " Item",
